@@ -1,0 +1,25 @@
+@charset "utf-8";
+/**
+ * bbSolution
+ *
+ * @package   bbSolution PHP Bulletin Board System
+ * @author    Sam Wilcox <sam@bb-solution.org>
+ * @copyright 2014 bbSolution. All Rights Reserved
+ * @license   http://www.bb-solution.org/license.php
+ * @version   CVS: $Id:$
+ */
+ 
+form
+{
+	padding:0px;
+	margin:0px;
+}
+
+input, select, textarea, upload
+{
+	font-family:"Trebuchet MS", Arial, Helvetica, sans-serif;
+	font-size:11px;
+	color:#000;
+	border:1px solid #333;
+	padding:2px;
+}

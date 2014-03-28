@@ -1,0 +1,15 @@
+@charset "utf-8";
+/**
+ * bbSolution
+ *
+ * @package   bbSolution PHP Bulletin Board System
+ * @author    Sam Wilcox <sam@bb-solution.org>
+ * @copyright 2014 bbSolution. All Rights Reserved
+ * @license   http://www.bb-solution.org/license.php
+ * @version   CVS: $Id:$
+ */
+
+/* Wrap all stylesheets into one big one */
+@import url('common.css');
+@import url('hyperlinks.css');
+@import url('forms.css');

@@ -1,0 +1,70 @@
+@charset "utf-8";
+/**
+ * bbSolution
+ *
+ * @package   bbSolution PHP Bulletin Board System
+ * @author    Sam Wilcox <sam@bb-solution.org>
+ * @copyright 2014 bbSolution. All Rights Reserved
+ * @license   http://www.bb-solution.org/license.php
+ * @version   CVS: $Id:$
+ */
+ 
+.topBar a, .topBar a:link, .topBar a:active, .topBar a:visited
+{
+	color:#FFF;
+	text-decoration:none;
+}
+
+.topBar a:hover
+{
+	color:#000;
+	text-decoration:none;
+}
+
+.topBottomBar a, .topBottomBar a:link, .topBottomBar a:active, .topBottomBar a:visited
+{
+	color:#FFF;
+	text-decoration:none;
+}
+
+.topBottomBar a:hover
+{
+	color:#FFF;
+	text-decoration:underline;
+}
+
+.navBar a, .navBar a:link, .navBar a:active, .navBar a:visited
+{
+	color:#000;
+	text-decoration:underline;
+}
+
+.navBar a:hover
+{
+	color:#F60;
+	text-decoration:underline;
+}
+
+a, a:link, a:active, a:visited
+{
+	color:#AE2300;
+	text-decoration:none;
+}
+
+a:hover
+{
+	color:#000;
+	text-decoration:underline;
+}
+
+.bottomBarRight a, .bottomBarRight a:link, .bottomBarRight a:active, .bottomBarRight a:visited
+{
+	color:#000;
+	text-decoration:none;
+}
+
+.bottomBarRight a:hover
+{
+	color:#000;
+	text-decoration:underline;
+}
