@@ -7,7 +7,7 @@
  * @author    Sam Wilcox <sam@bb-solution.org>
  * @copyright 2014 bbSolution. All Rights Reserved.
  * @license   http://www.bb-solution.org/license.php
- * @version   CSV: $Id:$
+ * @version   CVS: $Id:$
  */
 
 // No hacking attempts are allowed
@@ -23,7 +23,7 @@ if ( ! defined( 'BBS' ) )
  * @package   bbSolution PHP Bulletin Board System
  * @author    Sam Wilcox <sam@bb-solution.org>
  * @copyright 2014 bbSolution. All Rights Reserved.
- * @version   CSV: $Id:$
+ * @version   CVS: $Id:$
  * @access    public
  */
 class BBSolutionDatabase
@@ -261,13 +261,13 @@ class BBSolutionDatabase
         // Make a connection to the MySQL server via PHP PDO
         try
         {
-            $this->_db_handle = new PDO( 'mysql:host=' . $this->_db_host . ':' . $this->_db_port . ';dbname=' . $this->_db_name, $this->_db_username, $this->_db_password );
-        }
-        catch ( PDOException $e )
-        {
+            $this->_db_handle = new PDO( 'mysql:host=' . $this->_db_host . ';dbname=' . $this->_db_name, $this->_db_username, $this->_db_password );
+            
             // Set the PDO exception to error mode
             $this->_db_handle->setAttribute( PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION );
-            
+        }
+        catch ( PDOException $e )
+        {            
             // Encountered an error, take proper action
             $this->_db_error_message = $e->getMessage();
             $this->db_fatal_error( 'Failed to make a valid connection to the MySQL database server. Please check your database connection settings and try again.' );
@@ -572,7 +572,7 @@ class BBSolutionDatabase
         $error                   = htmlspecialchars( $error );
         $this->_db_error_message = htmlspecialchars( $this->_db_error_message );
         
-        echo ( 'Database error: ' . $error );
+        echo ( 'Database error: ' . $error . ' Error was: ' . $this->_db_error_message );
         
         die ( '' );
     }

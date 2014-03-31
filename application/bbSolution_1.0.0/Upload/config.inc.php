@@ -15,12 +15,31 @@ if ( ! defined( 'BBS' ) )
 $CFG['db_driver'] = 'pdo_mysql';
 $CFG['db_host'] = 'localhost';
 $CFG['db_port'] = 3306;
-$CFG['db_name'] = '';
-$CFG['db_username'] = 'root';
-$CFG['db_password'] = '';
+$CFG['db_name'] = 'yourihos_bbs';
+$CFG['db_username'] = 'yourihos_sjwspud';
+$CFG['db_password'] = '11Meridian7!!';
 $CFG['db_prefix'] = 'bbs_';
 $CFG['db_persistant'] = false;
-$CFG['db_debug_mode'] = false;
+$CFG['db_debug_mode'] = true;
 $CFG['db_debug_dir'] = 'logs/db';
+$CFG['session_timeout'] = 30;
+$CFG['session_ip_match'] = false;
+$CFG['session_store_method'] = 'dbstore'; // dbstore or filestore
+$CFG['validate_ip_address'] = false;
+$CFG['gzip_compression'] = true;
+$CFG['detect_search_bots'] = true;
+$CFG['search_bot_list'] = '';
+$CFG['cache_db'] = true;
+$CFG['cache_db_method'] = 'filecache'; // filecache or dbcache
+$CFG['cache_dir'] = 'cache';
+$CFG['cache_db_dir'] = 'db';
+$CFG['application_url'] = 'http://www.yourihosting.com/bbs';
+$CFG['application_script_filename'] = 'index.php';
+$CFG['search_optimize'] = false;
+$CFG['cookie_path'] = '';
+$CFG['cookie_domain'] = '';
+$CFG['theme_id'] = 1;
+$CFG['language_id'] = 1;
+$CFG['dt_timezone'] = 'Boise';
 
 ?>

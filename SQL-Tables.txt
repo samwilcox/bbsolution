@@ -1,0 +1,65 @@
+SQL Tables...
+
+- sessions
+session_id
+session_member_id
+session_member_username
+session_expires
+session_last_click
+session_location
+session_ip_address
+session_user_agent
+session_hostname
+session_anonymous
+session_search_bot
+session_search_bot_name
+session_admin_session
+
+- session_store
+session_id
+session_data
+session_expires
+
+- members
+member_id
+member_username
+member_password
+member_salt
+member_token
+member_display_name
+member_email_address
+
+- stored_cache
+cache_id
+cache_title
+cache_data
+
+- forums
+forum_id
+forum_title
+forum_lft
+forum_rgt
+
+- installed_themes
+theme_id
+theme_name
+theme_about
+theme_install_folder
+theme_imageset_install_folder
+theme_author_name
+theme_author_email_address
+theme_author_website_url
+
+- installed_languages
+language_id
+language_name
+language_about
+language_install_folder
+language_author_name
+language_author_email_address
+language_author_website_url
+
+- statistics
+statistic_id
+statistic_online_record
+statistic_online_record_timestamp

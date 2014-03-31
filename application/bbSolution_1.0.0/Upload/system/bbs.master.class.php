@@ -1,0 +1,1033 @@
+<?php
+
+/**
+ * bbSolution
+ * 
+ * @package   bbSolution PHP Bulletin Board System
+ * @author    Sam Wilcox <sam@bb-solution.org>
+ * @copyright 2014 bbSolution. All Rights Reserved.
+ * @license   http://www.bb-solution.org/license.php
+ * @version   CVS: $Id:$
+ */
+
+// No hacking attempts are allowed
+if ( ! defined( 'BBS' ) )
+{
+    echo '<h1>Access Denied</h1>You are not allowed to access this file directly.';
+    exit();
+}
+
+/**
+ * BBSolutionMaster
+ * 
+ * @package   bbSolution PHP Bulletin Board System
+ * @author    Sam Wilcox <sam@bb-solution.org>
+ * @copyright 2014 bbSolution. All Rights Reserved.
+ * @version   CVS: $Id:$
+ * @access    public
+ */
+
+class BBSolutionMaster
+{
+    /**
+     * Version Number
+     * @var String $this_version
+     */
+     public $this_version = THIS_VERSION;
+     
+    /**
+     * PHP Extension
+     * @var String $php_ext
+     */
+     public $php_ext = 'php';
+    
+    /**
+     * Application Configurations
+     * @var Array $CFG
+     */
+     public $CFG = array();
+     
+    /**
+     * Incoming Data
+     * @var Array $INC
+     */
+     public $INC = array();
+     
+    /**
+     * Member Information
+     * @var Array $MEMBER
+     */
+     public $MEMBER = array();
+     
+    /**
+     * User Agent Information
+     * @var Array $AGENT
+     */
+     public $AGENT = array();
+     
+    /**
+     * Session Information
+     * @var Array $SESSION
+     */
+     public $SESSION = array();
+     
+    /**
+     * Script Execution Timer Information
+     * @var Array $TIMER
+     */
+     public $TIMER = array();
+     
+    /**
+     * SQL Data Passing Array
+     * @var Array $TOSQL
+     */
+     public $TOSQL = array();
+     
+    /**
+     * Theme Passing Array
+     * @var Array $T
+     */
+     public $T = array();
+     
+    /**
+     * Database Cache
+     * @var Array $CACHE
+     */
+     public $CACHE = array();
+     
+    /**
+     * Language Words
+     * @var Array $LANG
+     */
+     public $LANG = array();
+     
+    /**
+     * Error Words
+     * @var Array $ERRORS
+     */
+     public $ERRORS = array();
+     
+    /**
+     * Application Base URL
+     * @var String $base_url
+     */
+     public $base_url = '';
+     
+    /**
+     * Application Script URL
+     * @var String $script_url
+     */
+     public $script_url = '';
+     
+    /**
+     * Application Imageset URL
+     * @var String $imageset_url
+     */
+     public $imageset_url = '';
+     
+    /**
+     * Theme Location URL
+     * @var Strong $theme_url
+     */
+     public $theme_url = '';
+     
+    /**
+     * Theme Location Path
+     * @var String $theme_path
+     */
+     public $theme_path = '';
+     
+    /**
+     * Language Location Path
+     * @var String $lang_path
+     */
+     public $lang_path = '';
+     
+    /**
+     * Database Prefix
+     * @var String $db_prefix
+     */
+     public $db_prefix = '';
+    
+    public function hand_off()
+    {
+        // Load the application configuration settings
+        $CFG = array();
+        require_once( ROOT_PATH . 'config.inc.' . $this->php_ext );
+        $this->CFG = $CFG;
+        
+        // Start the timer
+        $this->start_script_execution_timer();
+        
+        // Fix Microsoft IIS server request_uri var
+        $this->fix_iis_uri();
+        
+        // Get some details about the user
+        $this->AGENT['ip_address'] = $this->get_server_var( 'REMOTE_ADDR' );
+        $this->validate_ip_address( $this->AGENT['ip_address'] );
+        $this->AGENT['hostname']   = gethostbyaddr( $this->AGENT['ip_address'] );
+        $this->AGENT['agent']      = $this->get_server_var( 'HTTP_USER_AGENT' );
+        $this->AGENT['uri']        = $this->get_server_var( 'REQUEST_URI' );
+        
+        // Grab the user's browser details
+        $this->get_browser_details( $this->AGENT['agent'] );
+        
+        // Detect any search bots that may be paying us a visit
+        $this->detect_search_bots( $this->AGENT['agent'] );
+        
+        // Filter incoming data for security purposes
+        $this->filter_incoming_data();
+        
+        // Load our core classes, they are important!
+        $this->initialize_core_classes();
+        
+        // Initialize the database and get it goin
+        $this->initialize_database();
+        
+        // Since the database is up and going now, initialize the cache
+        // (if turned on)
+        $this->initialize_database_cache();
+        
+        // Setup a few urls
+        $this->setup_urls();
+        
+        // Do a few session related tasks real quick
+        $this->SESSIONS->session_garbage_collection();
+        $this->SESSIONS->manage_sessions();
+        $this->SESSIONS->check_online_record();
+        
+        // Check to see if a member is logged in
+        if ( isset( $_SESSION['bbs_username'] ) )
+        {
+            $this->MEMBER['status']   = true;
+            $this->MEMBER['username'] = $_SESSION['bbs_username'];
+        }
+        else
+        {
+            $this->MEMBER['status']   = false;
+            $this->MEMBER['username'] = 'Guest';
+        }
+        
+        // Configure some urls and some paths
+        $this->configure_urls_paths();
+        
+        // Load the master class resources
+        $this->load_language();
+        $this->load_errors();
+        $this->load_theme();
+        
+        // Now that we got that all done, what are we doing?
+        if ( isset( $this->INC['cls'] ) )
+        {
+            $cls = $this->INC['cls'];
+        }
+        else
+        {
+            $cls = 'index';
+        }
+        
+        // Now that we know what to do, require in the class and get
+        // it goin!
+        require_once( ROOT_PATH . 'system/classes/' . $cls . '.class.' . $this->php_ext );
+        
+        $run = new $cls;
+        $run->BBS =& $this;
+        $run->start_now();
+        
+        // Force a session write close
+        session_write_close();
+        
+        // Disconnect from the database
+        $this->DB->db_disconnect();
+    }
+     
+    public function get_server_var( $v )
+    {
+        return trim( $_SERVER[$v] );
+    }
+    
+    public function get_env_var( $v )
+    {
+        return trim( $_ENV[$v] );
+    }
+    
+    public function fix_iis_uri()
+    {
+        if ( ! isset( $_SERVER['REQUEST_URI'] ) )
+        {
+            $_SERVER['REQUEST_URI'] = substr( $_SERVER['PHP_SELF'], 1 );
+            if ( isset( $_SERVER['QUERY_STRING'] ) ) { $_SERVER['REQUEST_URI'] .= '?' . $_SERVER['QUERY_STRING']; }
+        }
+    }
+    
+    public function validate_ip_address( $ip )
+    {
+        // Match the IP pattern, and then validate each IP address
+        // octet
+        if ( preg_match( "/^((1?\d{1,2}|2[0-4]\d|25[0-5])\.){3}(1?\d{1,2}|2[0-4]\d|25[0-5])$/", $ip ) )
+        {
+            $octs = explode( '.', $ip );
+            
+            foreach ( $octs as $octet )
+            {
+                if ( ( intval( $octet ) > 255 ) OR ( intval( $octet ) < 0 ) )
+                {
+                    $valid = false;
+                }
+            }
+            
+            $valid = true;
+        }
+        else
+        {
+            $valid = false;
+        }
+        
+        // Are we valid or not?
+        switch ( $this->CFG['validate_ip_address'] )
+        {
+            case true:
+            switch ( $valid )
+            {
+                case false:
+                echo '<h1>bbSolution Error</h1>Your IP address could not be determined. You must have a valid IP address in order to access or site.';
+                exit();
+                break;
+            }
+            break;
+        }
+    }
+    
+    public function start_script_execution_timer()
+    {
+        $this->TIMER['start'] = explode( ' ', microtime() );
+        $this->TIMER['start'] = $this->TIMER['start'][1] + $this->TIMER['start'][1];
+    }   
+    
+    public function stop_script_execution_timer()
+    {
+        $this->TIMER['stop'] = explode( ' ', microtime() );
+        $this->TIMER['stop'] = $this->TIMER['stop'][1] + $this->TIMER['stop'][0];
+        $this->TIMER['stop'] = round( ( $this->TIMER['stop'] - $this->TIMER['start'] ) );
+    }
+    
+    public function initialize_gzip_compression()
+    {
+        // Only start Gzip compression if enabled
+        switch ( $this->CFG['gzip_compression'] )
+        {
+            case true:
+            ob_start( 'ob_gzhandler' );
+            break;
+        }
+    }
+    
+    public function get_browser_details( $agent )
+    {
+        // Setup initial vars
+        $name  = 'Unknown';
+        $agent = strtolower( $agent );
+        
+        // Create our current browser listing
+        $browsers = array( 'Windows Mobile'       => 'IEMobile',
+                           'Android Mobile'       => 'Android',
+                           'iPhone Mobile'        => 'iPhone',
+                           'Blackberry'           => 'Blackberry',
+                           'Blazer'               => 'Blazer',
+                           'Bolt'                 => 'BOLT',
+                           'Opera Mini'           => 'Opera Mini',
+                           'Opera Mobile'         => 'Opera Mobi',
+                           'Skyfire'              => 'Skyfire',
+                           'Firefox'              => 'Firefox',
+                           'Google Chrome'        => 'Chrome',
+                           'Internet Explorer'    => 'MSIE',
+                           'Internet Explorer v1' => 'microsoft internet explorer',
+                           'Opera'                => 'Opera',
+                           'Apple Safari'         => 'Safari',
+                           'Konqueror'            => 'Konqueror',
+                           'America Online'       => 'America Online Browser',
+                           'AOL'                  => 'AOL',
+                           'Netscape'             => 'Navigator' );
+                           
+        // Go through and match against the user agent, see if we
+        // find the browser the user is using
+        $found = false;
+        
+        foreach ( $browsers as $k => $v )
+        {
+            if ( preg_match( "/$v/", $agent ) )
+            {
+                $name = $k;
+            }
+        }
+        
+        // Set the browser name
+        $this->AGENT['browser_name'] = $name;
+    }
+    
+    public function detect_search_bots( $agent )
+    {
+        // Depending if this feature is enabled, we compare the user agent to
+        // the different search bot strings
+        switch ( $this->CFG['detect_search_bots'] )
+        {
+            case true:
+            $search_bots = explode( ',', $this->CFG['search_bot_list'] );
+/*            
+            if ( count( $search_bots ) > 0 )
+            {
+                foreach ( $search_bots as $bot )
+                {
+                    if ( strpos( ' ' . strtolower( $agent ), strtolower( $bot ) ) != false )
+                    {
+                        $name = $bot;
+                    }
+                }
+            }
+*/            
+            // Determine if found or not
+            if ( isset( $name ) )
+            {
+                $this->SESSION['search_bot']      = 1;
+                $this->SESSION['search_bot_name'] = $name;
+            }
+            else
+            {
+                $this->SESSION['search_bot']      = 0;
+                $this->SESSION['search_bot_name'] = '';
+            }
+            break;
+            
+            case false:
+            // Not detecting bots, just clear out the var values
+            $this->SESSION['search_bot']      = 0;
+            $this->SESSION['search_bot_name'] = '';
+            break;
+        }
+    }
+    
+    public function filter_incoming_data()
+    {
+        foreach ( $_GET as $k => $v )
+        {
+            $this->INC[$k] = filter_var( $v, FILTER_SANITIZE_STRING );
+        }
+        
+        foreach ( $_POST as $k => $v )
+        {
+            $this->INC[$k] = filter_var( $v, FILTER_SANITIZE_STRING );
+        }
+    }
+    
+    public function initialize_database()
+    {
+        // Use the correct driver depending on what was configured
+        require_once( ROOT_PATH . 'system/drivers/' . strtolower( $this->CFG['db_driver'] ) . '.driver.class.' . $this->php_ext );
+        
+        // Create the database object, and pass in needed info
+        $this->DB = new BBSolutionDatabase;
+        $this->DB->BBS =& $this;
+        $this->DB->db_set_hostname( $this->CFG['db_host'] );
+        $this->DB->db_set_port( $this->CFG['db_port'] );
+        $this->DB->db_set_database_name( $this->CFG['db_name'] );
+        $this->DB->db_set_username( $this->CFG['db_username'] );
+        $this->DB->db_set_password( $this->CFG['db_password'] );
+        $this->DB->db_set_persistant( $this->CFG['db_persistant'] );
+        $this->DB->db_set_debug_mode( $this->CFG['db_debug_mode'] );
+        $this->DB->db_set_debug_dir( $this->CFG['db_debug_dir'] );
+        $this->DB->db_connect_to_database();
+        
+        // Determine the prefix
+        if ( $this->CFG['db_prefix'] != '' )
+        {
+            $this->db_prefix = $this->CFG['db_prefix'];
+        } 
+    }
+    
+    public function initialize_core_classes()
+    {
+        // List database references
+        $db_ref = array( 'mysql'     => 'mysql',
+                         'mysqli'    => 'mysql',
+                         'pdo_mysql' => 'mysql' );
+        
+        // Require the needed core class files
+        require_once( ROOT_PATH . 'system/classes/core/sessions.class.' . $this->php_ext );
+        require_once( ROOT_PATH . 'system/classes/core/sql-queries.' . $db_ref[$this->CFG['db_driver']] . '.class.' . $this->php_ext );
+        
+        // Create the objects
+        $this->SQL      = new BBSolutionSQL;
+        $this->SQL->BBS =& $this;
+        
+        $this->SESSIONS      = new BBSolutionSessions;
+        $this->SESSIONS->BBS =& $this;
+    }
+    
+    public function initialize_database_cache()
+    {
+        // Is database caching enabled?
+        switch ( $this->CFG['cache_db'] )
+        {
+            case true:
+            // Build the table caching list
+            $cache_list = array( 'members'             => 'member_id',
+                                 'forums'              => 'forum_id',
+                                 'installed_themes'    => 'theme_id',
+                                 'installed_languages' => 'language_id',
+                                 'statistics'          => 'statistic_id' );
+                                 
+            // Determine which cache method we are using
+            switch ( $this->CFG['cache_db_method'] )
+            {
+                case 'dbcache':
+                // Caching to the database
+                $q = $this->DB->db_query( $this->SQL->sql_select_all_stored_cache() );
+                
+                // Go throug the records
+                while ( $r = $this->DB->db_fetch_array( $q ) )
+                {
+                    // Unset $records to make sure its fresh
+                    unset( $records );
+                    
+                    // Go thrugh the cache list, and cache whats needed
+                    foreach ( $cache_list as $k => $v )
+                    {
+                        // Depending on the table, may need to do some special sorting
+                        if ( $k == 'groups' )
+                        {
+                            $sorting = " ORDER BY group_sorting ASC";
+                        }
+                        else
+                        {
+                            $sorting = " ORDER BY " . $v . " ASC";
+                        }
+                        
+                        if ( $r['cache_title'] != '' )
+                        {
+                            // Cache data does exist, populate it
+                            $this->CACHE[$k] = unserialize( $r['cache_data'] );
+                        }
+                        else
+                        {
+                            // If table is forums, we need do perform a special query
+                            if ( $k == 'forums' )
+                            {
+                                $q2 = $this->DB->db_query( $this->SQL->sql_select_all_forums_tree() );
+                            }
+                            else
+                            {
+                                $this->TOSQL = array( 'table'   => $k,
+                                                      'sorting' => $sorting );
+                                                      
+                                $q2 = $this->DB->db_query( $this->SQL->sql_select_all_cache() );
+                            }
+                            
+                            // Grab it all
+                            while ( $record = $this->DB->db_fetch_array( $q2 ) )
+                            {
+                                $records[] = $record;
+                            }
+                            
+                            $this->DB->db_free_result( $q2 );
+                            
+                            $to_cache = serialize( $records );
+                            
+                            // Update the cache in the database
+                            $this->TOSQL = array( 'to_cache'    => $to_cache,
+                                                  'cache_title' => $k );
+                            
+                            $this->DB->db_query( $this->SQL->sql_update_cache() );
+                            
+                            $this->CACHE[$k] = unserialize( $to_cache );
+                        }
+                    }
+                }
+                
+                // Free up memory
+                $this->DB->db_free_result( $q );
+                break;
+                
+                case 'filecache':
+                // Check for backslashes at the end and the beginning of the cache dir path
+                if ( substr( $this->CFG['cache_dir'], ( strlen( $this->CFG['cache_dir'] ) - 1 ), strlen( $this->CFG['cache_dir'] ) ) == '/' )
+                {
+                    $cache_dir = substr( $this->CFG['cache_dir'], 0, ( strlen( $this->CFG['cache_dir'] ) - 1 ) );
+                }
+                else
+                {
+                    $cache_dir = $this->CFG['cache_dir'];
+                }
+                
+                if ( substr( $cache_dir, 0, 1 ) == '/' )
+                {
+                    $cache_dir = substr( $cache_dir, 1, strlen( $cache_dir ) );
+                }
+                
+                if ( substr( $this->CFG['cache_db_dir'], ( strlen( $this->CFG['cache_db_dir'] ) - 1 ), strlen( $this->CFG['cache_db_dir'] ) ) == '/' )
+                {
+                    $cache_db_dir = substr( $this->CFG['cache_db_dir'], 0, ( strlen( $this->CFG['cache_db_dir'] ) - 1 ) );
+                }
+                else
+                {
+                    $cache_db_dir = $this->CFG['cache_db_dir'];
+                }
+                
+                // Create the full cache dir path
+                $cache_dir = ROOT_PATH . $cache_dir . '/' . $cache_db_dir . '/';
+                
+                // Check to see if the file exists or not, and for permissions
+                if ( ! file_exists( $cache_dir ) )
+                {
+                    die ( '<h1>bbSolution Error</h1>The database cache directory does not exist. Please check your cache settings and verify that the database cache directory does exist and try again.' );
+                }
+                
+                if ( ! is_readable( $cache_dir ) )
+                {
+                    die ( '<h1>bbSolution Error</h1>The database cache directory is not readable. Please make sure valid permissions are set on this directory.' );
+                }
+                
+                if ( ! is_writable( $cache_dir ) )
+                {
+                    die ( '<h1>bbSolution Error</h1>The database cache directory is not writable. Please make sure valid permissions are set on this directory.' );
+                }
+                
+                // Create the needed files
+                foreach ( $cache_list as $k => $v )
+                {
+                    if ( ! file_exists( $cache_dir . $k . '.cache.' . $this->php_ext ) )
+                    {
+                        if ( ! touch( $cache_dir . $k . '.cache.' . $this->php_ext ) )
+                        {
+                            die ( '<h1>bbSolution Error</h1>Failed to create the database cache file.' );
+                        }
+                        
+                        if ( ! chmod( $cache_dir . $k . '.cache.' . $this->php_ext, 0666 ) )
+                        {
+                            die ( '<h1>bbSolution Error</h1>Failed to set valid permissions on the database cache file.' );
+                        }
+                    }
+                }
+                
+                // Create or get records from the database cache files
+                foreach ( $cache_list as $k => $v )
+                {
+                    // Make sure we start out with a fresh $records var
+                    unset( $records );
+                    
+                    // If filesize is 0, then the file contains no data
+                    if ( filesize( $cache_dir . $k . '.cache.' . $this->php_ext ) == 0 )
+                    {
+                        // Special sorting may be needed
+                        if ( $k == 'groups' )
+                        {
+                            $sorting = " ORDER BY group_sorting ASC";
+                        }
+                        else
+                        {
+                            $sorting = " ORDER BY " . $v . " ASC";
+                        }
+                        
+                        // If table is forums, need to do a special query
+                        if ( $k == 'forums' )
+                        {
+                            $q = $this->DB->db_query( $this->SQL->sql_select_all_forums_tree() );
+                        }
+                        else
+                        {
+                            $this->TOSQL = array( 'table'   => $k,
+                                                  'sorting' => $sorting );
+                                                  
+                            $q = $this->DB->db_query( $this->SQL->sql_select_all_cache() );
+                        }
+                        
+                        // Go through all records
+                        while ( $record = $this->DB->db_fetch_array( $q ) )
+                        {
+                            $records[] = $record;
+                        }
+                        
+                        $this->DB->db_free_result( $q );
+                        
+                        // Serialize data
+                        $to_cache = serialize( $records );
+                        
+                        // Write the data to file
+                        if ( $fh = @fopen( $cache_dir . $k . '.cache.' . $this->php_ext, 'w' ) )
+                        {
+                            @fwrite( $fh, $to_cache );
+                            @fclose( $fh );
+                        }
+                        else
+                        {
+                            die ( '<h1>bbSolution Error</h1>Failed to write data to the cache file.' );
+                        }
+                        
+                        // Popoluate cache
+                        $this->CACHE[$k] = unserialize( $to_cache );
+                    }
+                    else
+                    {
+                        // Populate from file
+                        $this->CACHE[$k] = unserialize( implode( '', file( $cache_dir . $k . '.cache.' . $this->php_ext ) ) );
+                    }
+                }
+                break;
+            }
+            break;
+        }
+    }
+    
+    public function update_database_cache( $table, $id )
+    {
+        // Determine if database caching is enabled or not
+        switch ( $this->CFG['cache_db'] )
+        {
+            case true:
+            // Database caching is turned on
+            // Some special sorting may be needed
+            if ( $table == 'groups' )
+            {
+                $sorting = " ORDER BY group_sorting ASC";
+            }
+            else
+            {
+                $sorting = " ORDER BY " . $id . " ASC";
+            }
+            
+            // Re-cache data depending on the method
+            switch ( $this->CFG['cache_db_method'] )
+            {
+                case 'dbcache':
+                // If table is forums, we need do perform a special query
+                if ( $table == 'forums' )
+                {
+                    $q2 = $this->DB->db_query( $this->SQL->sql_select_all_forums_tree() );
+                }
+                else
+                {
+                    $this->TOSQL = array( 'table'   => $table,
+                                          'sorting' => $sorting );
+                                                      
+                    $q2 = $this->DB->db_query( $this->SQL->sql_select_all_cache() );
+                }
+                            
+                // Grab it all
+                while ( $record = $this->DB->db_fetch_array( $q2 ) )
+                {
+                    $records[] = $record;
+                }
+                            
+                $this->DB->db_free_result( $q2 );
+                            
+                $to_cache = serialize( $records );
+                            
+                // Update the cache in the database
+                $this->TOSQL = array( 'to_cache'    => $to_cache,
+                                      'cache_title' => $table );
+                            
+                $this->DB->db_query( $this->SQL->sql_update_cache() );
+                            
+                $this->CACHE[$k] = unserialize( $to_cache );
+                break;
+                
+                case 'filecache':
+                // Check for backslashes at the end and the beginning of the cache dir path
+                if ( substr( $this->CFG['cache_dir'], ( strlen( $this->CFG['cache_dir'] ) - 1 ), strlen( $this->CFG['cache_dir'] ) ) == '/' )
+                {
+                    $cache_dir = substr( $this->CFG['cache_dir'], 0, ( strlen( $this->CFG['cache_dir'] ) - 1 ) );
+                }
+                else
+                {
+                    $cache_dir = $this->CFG['cache_dir'];
+                }
+                
+                if ( substr( $cache_dir, 0, 1 ) == '/' )
+                {
+                    $cache_dir = substr( $cache_dir, 1, strlen( $cache_dir ) );
+                }
+                
+                if ( substr( $this->CFG['cache_db_dir'], ( strlen( $this->CFG['cache_db_dir'] ) - 1 ), strlen( $this->CFG['cache_db_dir'] ) ) == '/' )
+                {
+                    $cache_db_dir = substr( $this->CFG['cache_db_dir'], 0, ( strlen( $this->CFG['cache_db_dir'] ) - 1 ) );
+                }
+                else
+                {
+                    $cache_db_dir = $this->CFG['cache_db_dir'];
+                }
+                
+                // Create the full cache dir path
+                $cache_dir = ROOT_PATH . $cache_dir . '/' . $cache_db_dir . '/';
+                
+                // Check to see if the file exists or not, and for permissions
+                if ( ! file_exists( $cache_dir ) )
+                {
+                    die ( '<h1>bbSolution Error</h1>The database cache directory does not exist. Please check your cache settings and verify that the database cache directory does exist and try again.' );
+                }
+                
+                if ( ! is_readable( $cache_dir ) )
+                {
+                    die ( '<h1>bbSolution Error</h1>The database cache directory is not readable. Please make sure valid permissions are set on this directory.' );
+                }
+                
+                if ( ! is_writable( $cache_dir ) )
+                {
+                    die ( '<h1>bbSolution Error</h1>The database cache directory is not writable. Please make sure valid permissions are set on this directory.' );
+                }
+                
+                // If table is forums, need to do a special query
+                if ( $table == 'forums' )
+                {
+                    $q = $this->DB->db_query( $this->SQL->sql_select_all_forums_tree() );
+                }
+                else
+                {
+                    $this->TOSQL = array( 'table'   => $table,
+                                          'sorting' => $sorting );
+                                                  
+                $q = $this->DB->db_query( $this->SQL->sql_select_all_cache() );
+                }
+                        
+                // Go through all records
+                while ( $record = $this->DB->db_fetch_array( $q ) )
+                {
+                    $records[] = $record;
+                }
+                        
+                $this->DB->db_free_result( $q );
+                        
+                // Serialize data
+                $to_cache = serialize( $records );
+                        
+                // Write the data to file
+                if ( $fh = @fopen( $cache_dir . $k . '.cache.' . $this->php_ext, 'w' ) )
+                {
+                    @fwrite( $fh, $to_cache );
+                    @fclose( $fh );
+                }
+                else
+                {
+                    die ( '<h1>bbSolution Error</h1>Failed to write data to the cache file.' );
+                }
+                        
+                // Popoluate cache
+                $this->CACHE[$k] = unserialize( $to_cache );
+                break;
+            }
+            break;
+        }
+    }
+    
+    public function get_data( $table, $id )
+    {
+        // Is database caching enabled?
+        switch ( $this->CFG['cache_db'] )
+        {
+            case true:
+            // Check if the cache already exists or not
+            if ( count( $this->CACHE[$table] ) > 0 )
+            {
+                return $this->CACHE[$table];
+            }
+            else
+            {
+                return false;
+            }
+            break;
+            
+            case false:
+            // Some special sorting is needed possibly
+            if ( $table == 'groups' )
+            {
+                $sorting = " ORDER BY group_sorting ASC";
+            }
+            else
+            {
+                $sorting = " ORDER BY " . $id . " ASC";
+            }
+            
+            // If the table is forums, some special query is needed,
+            // and if not, then just select all
+            if ( $table == 'forums' )
+            {
+                $q = $this->DB->db_query( $this->SQL->sql_select_all_forums_tree() );
+            }
+            else
+            {
+                $this->TOSQL = array( 'table'   => $table,
+                                      'sorting' => $sorting );
+                
+                $q = $this->DB->db_query( $this->SQL->sql_select_all_cache() );
+            }
+            
+            // Go throug the records
+            while ( $record = $this->DB->db_fetch_array( $q ) )
+            {
+                $records[] = $record;
+            }
+            
+            $this->DB->db_free_result( $q );
+            
+            // Serialize the records
+            $result = serialize( $records );
+            
+            // Unserialize and populate the cache var
+            $this->CACHE[$table] = unserialize( $result );
+            
+            // If no results, then we will return false
+            if ( count( $this->CACHE[$table] ) > 0 )
+            {
+                return $this->CACHE[$table];
+            }
+            else
+            {
+                return false;
+            }
+            break;
+        }
+    }
+    
+    public function setup_urls()
+    {
+        // Check if there is a trailing slash or not
+        if ( substr( $this->CFG['application_url'], strlen( $this->CFG['application_url'] ) - 1, strlen( $this->CFG['application_url'] ) ) == '/' )
+        {
+            $this->base_url = substr( $this->CFG['application_url'], 0, strlen( $this->CFG['application_url'] ) - 1 );
+        }
+        else
+        {
+            $this->base_url = $this->CFG['application_url'];
+        }
+        
+        $this->script_url = $this->base_url . '/' . $this->CFG['application_script_filename'];
+    }
+    
+    public function seo_url( $a = '', $b ='', $c = '' )
+    {
+        $url = '';
+        
+        // Is search engine optimization enabled?
+        switch ( $this->CFG['search_optimize'] )
+        {
+            case true:
+            // Search engine optimization is enabled, create the URL depending
+            // on the passed in vars
+            ( $a != '' ) ? $url .= $a : '';
+            ( $b != '' ) ? $url .= '/' . $b : '';
+            ( $c != '' ) ? $url .= '/' . $c : '';
+            
+            return $this->base_url . '/' . $url;
+            break;
+            
+            case false:
+            // Search engine optimization is disabled, create the URL depending
+            // on the passed in vars
+            ( $a != '' ) ? $url .= '?cls=' . $a : '';
+            ( $b != '' ) ? $url .= '&amp;to_do=' . $b : '';
+            ( $c != '' ) ? $url .= '&amp;page=' . $c : '';
+            
+            return $this->script_url . $url;
+            break;
+        }
+    }
+    
+    public function delete_cookie( $name, $php_cookie = false )
+    {
+        // Is this a PHP session cookie?
+        // If so, we delete a different way
+        switch ( $php_cookie )
+        {
+            case true:
+            // It is a PHP cookie
+            setcookie( session_name(), '', time() - 3600 );
+            break;
+            
+            case false:
+            // A normal cookie
+            setcookie( $name, '', time() - 3600, $this->CFG['cookie_path'], $this->CFG['cookie_domain'] );
+            break;
+        }
+    }
+    
+    public function new_cookie( $name, $value, $expire )
+    {
+        setcookie( $name, $value, $expire, $this->CFG['cookie_path'], $this->CFG['cookie_domain'] );
+    }
+    
+    public function configure_urls_paths()
+    {
+        // Is a member logged in?
+        switch ( $this->MEMBER['status'] )
+        {
+            case false:
+            // Grab the installed themes data
+            $r = $this->get_data( 'installed_themes', 'theme_id' );
+            
+            if ( $r != false )
+            {
+                foreach ( $r as $k => $v )
+                {
+                    // Set the selected theme
+                    if ( $v['theme_id'] == $this->CFG['theme_id'] )
+                    {
+                        $theme_folder          = $v['theme_install_folder'];
+                        $theme_imageset_folder = $v['theme_imageset_install_folder'];
+                    }
+                }
+            }
+            
+            // Grab the installed languages data
+            $r = $this->get_data( 'installed_languages', 'language_id' );
+            
+            if ( $r != false )
+            {
+                foreach ( $r as $k => $v )
+                {
+                    // Set the selected language
+                    if ( $v['language_id'] == $this->CFG['language_id'] )
+                    {
+                        $language_folder = $v['language_install_folder'];
+                    }
+                }
+            }
+            
+            // Set the default timezone for PHP to use
+            date_default_timezone_set( $this->CFG['dt_timezone'] );
+            
+            // Setup a few urls and paths
+            $this->theme_path   = ROOT_PATH . 'themes/' . $theme_folder . '/';
+            $this->theme_url    = $this->base_url . '/themes/' . $theme_folder;
+            $this->imageset_url = $this->base_url . '/public/imagesets/' . $theme_imageset_folder;
+            $this->lang_path    = ROOT_PATH . 'languages/' . $language_folder . '/';
+            break;
+            
+            case true:
+            // Member stuff to go here...
+            break;
+        }
+    }
+    
+    public function load_language()
+    {
+        $LANG = array();
+        require( $this->lang_path . 'global.lang.' . $this->php_ext );
+        $this->LANG = $LANG;        
+    }
+    
+    public function load_errors()
+    {
+        $ERRORS = array();
+        require( $this->lang_path . 'errors.lang.' . $this->php_ext );
+        $this->ERRORS = $ERRORS;
+    }
+    
+    public function load_theme()
+    {
+        require_once( $this->theme_path . 'global.theme.' . $this->php_ext );
+        
+        $this->THEME       = new BBSolutionThemeGlobal;
+        $this->THEME->BBS  =& $this;
+        $this->THEME->LANG = $this->LANG;
+    }
+}
+
+?>

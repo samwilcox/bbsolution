@@ -7,7 +7,7 @@
  * @author    Sam Wilcox <sam@bb-solution.org>
  * @copyright 2014 bbSolution. All Rights Reserved.
  * @license   http://www.bb-solution.org/license.php
- * @version   CSV: $Id:$
+ * @version   CVS: $Id:$
  */
 
 /**
@@ -50,10 +50,17 @@ if ( substr( $root_path, strlen( $root_path ) - 1, strlen( $root_path ) ) != '/'
 
 // Define the needed constants
 define( 'THIS_VERSION', '1.0.0' );
-define( 'PHP_EXT', $php_extension );
-define( 'BBS', true );
-define( 'ROOT_PATH', $root_path );
+define( 'PHP_EXT',      $php_extension );
+define( 'BBS',          true );
+define( 'ROOT_PATH',    $root_path );
 
+// Require the master class
+require_once( ROOT_PATH . 'system/bbs.master.class.' . $php_extension );
 
+// Create the master object and then hand it off
+$BBS = new BBSolutionMaster;
+
+// Hand off...
+$BBS->hand_off();
 
 ?>
