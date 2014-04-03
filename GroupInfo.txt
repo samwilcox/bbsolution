@@ -1,0 +1,8 @@
+GROUPS:
+
+1 - Administrators
+2 - Global Moderators
+3 - Awaiting Activation
+4 - Banned
+5 - Members
+6 - Guests

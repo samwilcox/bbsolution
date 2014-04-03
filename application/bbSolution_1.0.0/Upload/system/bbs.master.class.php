@@ -474,7 +474,9 @@ class BBSolutionMaster
                                  'forums'              => 'forum_id',
                                  'installed_themes'    => 'theme_id',
                                  'installed_languages' => 'language_id',
-                                 'statistics'          => 'statistic_id' );
+                                 'statistics'          => 'statistic_id',
+                                 'forums_read'         => 'read_id',
+                                 'groups'              => 'group_id' );
                                  
             // Determine which cache method we are using
             switch ( $this->CFG['cache_db_method'] )
@@ -1390,6 +1392,466 @@ class BBSolutionMaster
         
         // Return the page links
         return $go_first . $previous . $pages . $next . $go_last;
+    }
+    
+    public function get_member_link( $member_id, $title = '', $sep = '' )
+    {
+        // Find the member a get some info
+        $found = false;
+        
+        $r = $this->get_data( 'members', 'member_id' );
+        
+        if ( $r != false )
+        {
+            foreach ( $r as $k => $v )
+            {
+                if ( $v['member_id'] == $member_id )
+                {
+                    $found               = true;
+                    $member_display_name = $v['member_display_name'];
+                    $group_id            = $v['member_primary_group_id'];
+                }
+            }
+        }
+        
+        // Was the member found?
+        // If not, return unknown
+        if ( ! $found ) return $this->LANG['unknown'];
+        
+        $found = false;
+        
+        // Get the group information
+        $r = $this->get_data( 'groups', 'group_id' );
+        
+        if ( $r != false )
+        {
+            foreach ( $r as $k => $v )
+            {
+                if ( $v['group_id'] == $group_id )
+                {
+                    $found = true;
+                    $group_color     = $v['group_color'];
+                    $group_important = $v['group_important'];
+                }
+            }
+        }
+        
+        // Was a group found? If not, return no styling
+        if ( ! $found )
+        {
+            $this->T = array( 'seperator'   => $sep,
+                              'title'       => $title,
+                              'member_name' => $member_display_name,
+                              'member_link' => $this->seo_url( 'members', $member_id ) );
+                          
+            return $this->THEME->html_member_link_no_style();
+        } 
+        
+        // A group was found?
+        // Is the group marked important? If so, use strong HTML tags
+        switch ( $group_important )
+        {
+            case 1:
+            $this->T = array( 'seperator'   => $sep,
+                              'title'       => $title,
+                              'member_name' => $member_display_name,
+                              'member_link' => $this->seo_url( 'members', $member_id ),
+                              'group_color' => $group_color );
+                              
+            return $this->THEME->html_member_link_important();
+            break;
+            
+            case 0:
+            $this->T = array( 'seperator'   => $sep,
+                              'title'       => $title,
+                              'member_name' => $member_display_name,
+                              'member_link' => $this->seo_url( 'members', $member_id ),
+                              'group_color' => $group_color );
+                              
+            return $this->THEME->html_member_link_normal();
+            break;
+        }     
+    }
+    
+    public function get_group_link( $group_id, $title = '', $sep = '' )
+    {        
+        // Get some info on the group
+        $found = false;
+        
+        $r = $this->get_data( 'groups', 'group_id' );
+        
+        if ( $r != false )
+        {
+            foreach ( $r as $k => $v )
+            {
+                if ( $v['group_id'] == $group_id )
+                {
+                    $found           = true;
+                    $group_title     = $v['group_title'];
+                    $group_about     = $v['group_about'];
+                    $group_color     = $v['group_color'];
+                    $group_important = $v['group_important'];
+                }
+            }
+        }
+        
+        // Was the group found? If not, return the unknown string
+        if ( ! $found ) return $this->LANG['unknown'];
+        
+        // Was there a title specified?
+        ( $title != '' ) ? $title = $title : $title = $group_about;
+        
+        // Depending if the group is important or not, we will return
+        // the proper linkage
+        switch ( $group_important )
+        {
+            case 1:
+            $this->T = array( 'seperator'   => $sep,
+                              'title'       => $title,
+                              'group_name'  => $group_title,
+                              'group_link'  => $this->seo_url( 'groups', $group_id ),
+                              'group_color' => $group_color );
+                              
+            return $this->THEME->html_group_link_important();
+            break;
+            
+            case 0:
+            $this->T = array( 'seperator'   => $sep,
+                              'title'       => $title,
+                              'group_name'  => $group_title,
+                              'group_link'  => $this->seo_url( 'groups', $group_id ),
+                              'group_color' => $group_color );
+                              
+            return $this->THEME->html_group_link_normal();
+            break;
+        }
+    }
+    
+    public function url_exist( $url )
+    {
+        // Use curl to see if a specified URL exists
+        $res_url = curl_init();
+        
+        curl_setopt( $res_url, CURLOPT_URL, $url );
+        curl_setopt( $res_url, CURLOPT_BINARYTRANSFER, 1 );
+        curl_setopt( $res_url, CURLOPT_HEADERFUNCTION, 'curlHeaderCallback' );
+        curl_setopt( $res_url, CURLOPT_FAILONERROR, 1 );
+        curl_exec( $res_url );
+        
+        $return_code = curl_getinfo( $res_url, CURLINFO_HTTP_CODE );
+        
+        // Close
+        curl_close( $res_url );
+        
+        // Return the result, depending on...
+        if ( $return_code != 200 && $return_code != 302 && $return_code != 304 ) { return false; } else { return true; }
+    }
+    
+    public function check_feature_permissions( $feature )
+    {
+        // Check to see if a member is currently logged in
+        switch ( $this->MEMBER['status'] )
+        {
+            case true:
+            // Member logged in, obtain needed information
+            $found = false;
+            
+            $r = $this->get_data( 'members', 'member_id' );
+            
+            if ( $r != false )
+            {
+                foreach ( $r as $k => $v )
+                {
+                    if ( $v['member_id'] == $this->MEMBER['id'] )
+                    {
+                        $found            = true;
+                        $primary_group    = $v['member_primary_group_id'];
+                        $secondary_groups = explode( ',', $v['member_secondary_group_ids'] );
+                    }
+                }
+            }
+            
+            // Was the member information found?
+            if ( ! $found ) return false;
+            break;
+            
+            case false:
+            // Member isnt logged in, place in the "hard-coded" guests group
+            $primary_group = 6;
+            break;
+        }
+        
+        $found = false;
+            
+        // Go through the feature permission sets, see if the user/member
+        // has permission or not
+        $r = $this->get_data( 'feature_permissions', 'feature_id' );
+            
+        if ( $r != false )
+        {
+            foreach ( $r as $k => $v )
+            {
+                if ( strtolower( $v['feature_title'] ) == strtolower( $feature ) )
+                {
+                    $found          = true;
+                    $enabled        = $v['feature_enabled'];
+                    $allowed_users  = explode( ',', $v['feature_allowed_users'] );
+                    $allowed_groups = explode( ',', $v['feature_allowed_groups'] );
+                }
+            }
+        }
+            
+        // Is the feature found?
+        // If not, return false
+        if ( ! $found ) return false;
+            
+        // Is the feature enabled?
+        // If not, return false
+        if ( $enabled == 0 ) return false;
+            
+        // If the primary group is 1 (Administrators), they automatically
+        // get permission
+        if ( $primary_group == 1 ) return true;
+            
+        // Go through the users secondary groups
+        if ( count( $secondary_groups ) > 0 )
+        {
+            foreach ( $secondary_groups as $group )
+            {
+                if ( $group != '' )
+                {
+                    if ( $group == 1 ) return true;
+                }
+            }
+        }
+            
+        if ( count( $allowed_groups ) > 0 )
+        {
+            foreach ( $allowed_groups as $group )
+            {
+                if ( $group != '' )
+                {
+                    if ( $group == $primary_group ) return true;
+                        
+                    if ( count( $secondary_groups ) > 0 )
+                    {
+                        foreach ( $secondary_groups as $sgroup )
+                        {
+                            if ( $sgroup != '' )
+                            {
+                                if ( $group == $sgroup ) return true;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+            
+        // Go through the allowed users and see if there is permission
+        if ( count( $allowed_users ) > 0 )
+        {
+            foreach ( $allowed_users as $user )
+            {
+                if ( $user != '' )
+                {
+                    if ( $user == $this->MEMBER['id'] ) return true;
+                }
+            }
+        }
+            
+        // We got this far, not good, since access is denied
+        return false;
+    }
+    
+    public function get_member_photo( $member_id, $type )
+    {
+        // Get the member's link
+        $found = false;
+        
+        $r = $this->get_data( 'members', 'member_id' );
+        
+        if ( $r != false )
+        {
+            foreach ( $r as $k => $v )
+            {
+                if ( $v['member_id'] == $member_id )
+                {
+                    $found               = true;
+                    $member_display_name = $v['member_display_name'];
+                }
+            }
+        }
+        
+        // If member isn't found, link wont exist
+        switch ( $found )
+        {
+            case true:
+            $title_lang = str_replace( '%%MEMBERNAME%%', $member_display_name, $this->LANG['view_profile'] );
+            
+            $this->T = array( 'title' => $title_lang,
+                              'member_link' => $this->seo_url( 'members', $member_id ) );
+                              
+            $member_link_start = $this->THEME->html_member_photo_link_start();
+            $member_link_end   = $this->THEME->html_member_photo_link_end();
+            break;
+            
+            case false:
+            $member_link_start = '';
+            $member_link_end   = '';
+            break;
+        }
+        
+        // Do we have permissions?
+        switch ( $this->check_feature_permissions( 'member_photos' ) )
+        {
+            case false:
+            // No permissions
+            // What type of method are we using?
+            switch ( $type )
+            {
+                case 'photo':
+                // Returning a "no photo"...
+                $this->T = array( 'link_start' => $member_link_start,
+                                  'link_end'   => $member_link_end );
+                                  
+                return $this->THEME->html_no_photo();
+                break;
+                
+                case 'thumb':
+                // Returning a "no photo" thumbnail...
+                $this->T = array( 'link_start' => $member_link_start,
+                                  'link_end'   => $member_link_end );
+                                  
+                return $this->THEME->html_no_photo_thumb();
+                break;
+            }
+            break;
+        }
+        
+        // Sort out the directory structure
+        if ( substr( $this->CFG['upload_dir'], ( strlen( $this->CFG['upload_dir'] ) ), strlen( $this->CFG['upload_dir'] ) ) == '/' )
+        {
+            $upload_dir = substr( $this->CFG['upload_dir'], 0, ( strlen( $this->CFG['upload_dir'] ) - 1 ) );
+        }
+        else
+        {
+            $upload_dir = $this->CFG['upload_dir'];
+        }
+        
+        if ( substr( $upload_dir, 0, 1 ) == '/' )
+        {
+            $upload_dir = substr( $upload_dir, 1, strlen( $upload_dir ) );
+        }
+        
+        if ( substr( $this->CFG['upload_photo_dir'], ( strlen( $this->CFG['upload_photo_dir'] ) ), strlen( $this->CFG['upload_photo_dir'] ) ) == '/' )
+        {
+            $upload_photo_dir = substr( $this->CFG['upload_photo_dir'], 0, ( strlen( $this->CFG['upload_photo_dir'] ) - 1 ) );
+        }
+        else
+        {
+            $upload_photo_dir = $this->CFG['upload_photo_dir'];
+        }
+        
+        if ( substr( $upload_photo_dir, 0, 1 ) == '/' )
+        {
+            $upload_photo_dir = substr( $upload_photo_dir, 1, strlen( $upload_photo_dir ) );
+        }
+        
+        // Put the complete URL together
+        $photo_dir = $this->base_url . '/' . $upload_dir . '/' . $upload_photo_dir . '/';
+        
+        // Put a few settings into easy to use vars for later use
+        $photo_max_width  = $this->CFG['member_photo_max_width'];
+        $photo_max_height = $this->CFG['member_photo_max_height'];
+        $thumb_max_width  = $this->CFG['member_photo_thumb_max_width'];
+        $thumb_max_height = $this->CFG['member_photo_thumb_max_height'];
+        
+        // Which type method are we using?
+        switch ( $type )
+        {
+            case 'photo':
+            // Are we resizing photos if they are too large?
+            switch ( $this->CFG['member_photo_enable_resizing'] )
+            {
+                case true:
+                // Grab the member's photo from the database
+                $display_photo = false;
+                
+                $r = $this->get_data( 'member_photos', 'photo_id' );
+                
+                if ( $r != false )
+                {
+                    foreach ( $r as $k => $v )
+                    {
+                        if ( $v['photo_member_id'] == $member_id )
+                        {
+                            // Does this member want to display the photo?
+                            switch ( $v['photo_display'] )
+                            {
+                                case 1:
+                                $display_photo  = true;
+                                $photo_filename = $v['photo_filename'];
+                                break;
+                                
+                                case 0:
+                                $display_photo = false;
+                                break;
+                            }
+                        }
+                    }
+                }
+                
+                // Does the user want to display their photo?
+                switch ( $display_photo )
+                {
+                    case true:
+                    // We are going to display the photo, but we need to do a few
+                    // things first
+                    $photo = $photo_dir . $photo;
+                    
+                    // Get the image sizes
+                    list( $photo_width, $photo_height ) = getimagesize( $photo );
+                    
+                    // Check to make sure that the photo doesnt exceed the max dimensions
+                    if ( ( $photo_width > $photo_max_width ) OR ( $photo_height > $photo_max_height ) )
+                    {
+                        // We need to resize the photo
+                        $photo_height = ( $photo_height / $photo_width ) * $photo_max_width;
+                        $photo_width  = $photo_max_width;
+                    }
+                    
+                    // Return the photo
+                    $this->T = array( 'link_start'   => $member_link_start,
+                                      'link_end'     => $member_link_end,
+                                      'width'        => $photo_width,
+                                      'height'       => $photo_height,
+                                      'member_photo' => $photo );
+                                      
+                    return $this->THEME->html_member_photo();
+                    break;
+                    
+                    case false:
+                    // Dont display the photo
+                    $this->T = array( 'link_start' => $member_link_start,
+                                      'link_end'   => $member_link_end );
+                                  
+                    return $this->THEME->html_no_photo();
+                    break;
+                }              
+                break;
+                
+                case false:
+                // Image resizing is disabled, just return the image with its
+                // original dimensions
+                
+                break;
+            }
+            break;
+            
+            case 'thumb':
+            
+            break;
+        }
     }
 }
 

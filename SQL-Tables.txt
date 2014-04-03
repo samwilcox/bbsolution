@@ -28,6 +28,16 @@ member_salt
 member_token
 member_display_name
 member_email_address
+member_primary_group_id
+member_secondary_group_ids
+
+- groups
+group_id
+group_sorting
+group_title
+group_about
+group_important
+group_color
 
 - stored_cache
 cache_id
@@ -39,6 +49,7 @@ forum_id
 forum_title
 forum_lft
 forum_rgt
+forum_parent_id **new**
 
 - installed_themes
 theme_id
@@ -63,3 +74,15 @@ language_author_website_url
 statistic_id
 statistic_online_record
 statistic_online_record_timestamp
+
+- forums_read
+read_id
+read_forum_id
+read_topic_id
+read_last_read_timestamp
+
+- member_photos
+photo_id
+photo_member_id
+photo_display
+photo_filename

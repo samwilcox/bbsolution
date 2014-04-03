@@ -12,5 +12,7 @@ $LANG['previous_page'] = 'Previous page';
 $LANG['next_page'] = 'Next page';
 $LANG['first_page'] = 'Go to the very first page';
 $LANG['last_page'] = 'Go to the very last page';
+$LANG['unknown'] = 'Unknown';
+$LANG['view_profile'] = 'View %%MEMBERNAME%%'s profile';
 
 ?>

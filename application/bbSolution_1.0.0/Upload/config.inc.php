@@ -44,5 +44,14 @@ $CFG['dt_timezone'] = 'Boise';
 $CFG['dt_time_format'] = '';
 $CFG['dt_date_format'] = '';
 $CFG['dt_show_today'] = true;
+$CFG['member_photo_enable_resizing'] = true;
+$CFG['member_photo_thumb_max_width'] = 50;
+$CFG['member_photo_thumb_max_height'] = 50;
+$CFG['member_photo_max_width'] = 100;
+$CFG['member_photo_max_height'] = 100;
+$CFG['no_photo_filename'] = 'no-photo.png';
+$CFG['no_photo_thumb_filename'] = '';
+$CFG['upload_dir'] = 'uploads';
+$CFG['upload_photo_dir'] = 'member_photos';
 
 ?>
