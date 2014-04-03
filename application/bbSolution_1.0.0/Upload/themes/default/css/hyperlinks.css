@@ -9,45 +9,11 @@
  * @version   CVS: $Id:$
  */
  
-.topBar a, .topBar a:link, .topBar a:active, .topBar a:visited
-{
-	color:#FFF;
-	text-decoration:none;
-}
 
-.topBar a:hover
-{
-	color:#000;
-	text-decoration:none;
-}
-
-.topBottomBar a, .topBottomBar a:link, .topBottomBar a:active, .topBottomBar a:visited
-{
-	color:#FFF;
-	text-decoration:none;
-}
-
-.topBottomBar a:hover
-{
-	color:#FFF;
-	text-decoration:underline;
-}
-
-.navBar a, .navBar a:link, .navBar a:active, .navBar a:visited
-{
-	color:#000;
-	text-decoration:underline;
-}
-
-.navBar a:hover
-{
-	color:#F60;
-	text-decoration:underline;
-}
 
 a, a:link, a:active, a:visited
 {
-	color:#AE2300;
+	color:#0075EA;
 	text-decoration:none;
 }
 
@@ -57,14 +23,63 @@ a:hover
 	text-decoration:underline;
 }
 
-.bottomBarRight a, .bottomBarRight a:link, .bottomBarRight a:active, .bottomBarRight a:visited
+.topLogoBarRight a, .topLogoBarRight a:link, .topLogoBarRight a:active, .topLogoBarRight a:visited
+{
+	color:#0075EA;
+	text-decoration:none;
+	font-weight:bold;
+}
+
+.topLogoBarRight a:hover
+{
+	color:#8000FF;
+	text-decoration:none;
+	font-weight:bold;
+}
+
+.menuBar a, .menuBar a:link, .menuBar a:active, .menuBar a:visited
+{
+	color:#FFF;
+	text-decoration:none;
+	padding-left:7px;
+	padding-right:7px;
+	padding-top:8px;
+	padding-bottom:8px;
+}
+
+.menuBar a:hover
+{
+	color:#FFF;
+	text-decoration:none;
+	padding-left:6px;
+	padding-right:6px;
+	padding-top:8px;
+	padding-bottom:8px;
+	background-color:#075AA7;
+	border-left:1px solid #FFF;
+	border-right:1px solid #FFF;
+}
+
+.navBar a, .navBar a:link, .navBar a:active, .navBar a:visited
 {
 	color:#000;
 	text-decoration:none;
 }
 
-.bottomBarRight a:hover
+.navBar a:hover
 {
 	color:#000;
+	text-decoration:underline;
+}
+
+.bottomBarRight a, .bottomBarRight a:link, .bottomBarRight a:active, .bottomBarRight a:visited
+{
+	color:#FFF;
+	text-decoration:none;
+}
+
+.bottomBarRight a:hover
+{
+	color:#FFF;
 	text-decoration:underline;
 }

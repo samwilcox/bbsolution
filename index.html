@@ -6,21 +6,20 @@
 <link href="application/bbSolution_1.0.0/Upload/themes/default/css/index.css" rel="stylesheet" type="text/css" media="screen">
 
 <script language="javascript" type="text/javascript">
-// Collapse and expand utility
 function toggleThis( eb,ei )
 {
-	var element_body = document.getElementById( eb );
-	var element_img  = document.getElementById( ei );
+	var elementBody = document.getElementById( eb );
+	var elementImg  = document.getElementById( ei );
 	
-	if ( element_body.className == 'hideMe' )
+	if ( elementBody.className == "hideMe" )
 	{
-		element_body.className = '';
-		element_img.innerHTML  = '<a href="javascript:void();" title="Collapse" onClick="toggleThis(\'' + eb + '\',\'' + ei + '\');"><img src="application/bbSolution_1.0.0/Upload/public/imagesets/master/icons/collapse.png" alt="*" class="imgNoBorder"></a>';
+		elementBody.className = "";
+		elementImg.innerHTML  = '<a href="javascript:void();" title="Collapse" onClick="toggleThis(\'' + eb + '\',\'' + ei + '\');"><img src="application/bbSolution_1.0.0/Upload/public/imagesets/master/icons/collapse.png" alt="*" class="imgNoBorder"></a>';
 	}
 	else
 	{
-		element_body.className = 'hideMe';
-		element_img.innerHTML  = '<a href="javascript:void();" title="Expand" onClick="toggleThis(\'' + eb + '\',\'' + ei + '\');"><img src="application/bbSolution_1.0.0/Upload/public/imagesets/master/icons/expand.png" alt="*" class="imgNoBorder"></a>';
+		elementBody.className = "hideMe";
+		elementImg.innerHTML  = '<a href="javascript:void();" title="Expand" onClick="toggleThis(\'' + eb + '\',\'' + ei + '\');"><img src="application/bbSolution_1.0.0/Upload/public/imagesets/master/icons/expand.png" alt="*" class="imgNoBorder"></a>';
 	}
 }
 </script>
@@ -28,145 +27,120 @@ function toggleThis( eb,ei )
 </head>
 
 <body>
-<div class="topBar">
-	<ul>
-		<li>Good Evening <strong>Guest</strong>! You are not logged in</li>
-		<li><img src="application/bbSolution_1.0.0/Upload/public/imagesets/master/icons/login.png" width="16" height="16" alt="*" class="imgAlign" title="Login"> <a href="?cls=authenticate" title="Login">Login</a></li>
-		<li><img src="application/bbSolution_1.0.0/Upload/public/imagesets/master/icons/createaccount.png" width="16" height="16" alt="*" class="imgAlign" title="Create Account"> <a href="?cls=createaccount" title="Create Account">Create Account</a></li>
-	</ul>
-</div>
-<div class="topMiddleBar"><a href="?cls=index" title="bbSolution Development"><img src="application/bbSolution_1.0.0/Upload/public/imagesets/master/images/bb-logo.png" width="206" height="45" alt="*" class="imgNoBorder"></a></div>
-<div class="topBottomBar">
-	<div class="topBottomBarLeft">
-    	<ul>
-    		<li><a href="?cls=index" title="Forums">Forums</a></li>
-    		<li><a href="?cls=members&to_do=list" title="Members List">Members List</a></li>
-    		<li><a href="?cls=search" title="Search">Search</a></li>
-    		<li><a href="?cls=help" title="Help">Help</a></li>
-       	</ul>
-    </div>
-    <div class="topBottomBarRight">
-   	  <ul>
-    		<li><a href="?cls=search&to_do=newposts" title="View New Posts">View New Posts</a></li>
-    		<li><a href="?cls=online" title="Who's Online?">Who's Online?</a> </li>
-   	  </ul>
-    </div>
-    <div class="clear"></div>
-</div>
-<div class="navBar"><strong>You are here:</strong> <a href="?cls=index" title="Forums">Forums</a></div>
-<div class="newsBar"><strong>Latest News:</strong> <a href="?cls=topic&to_do=1" title="bbSolution 1.0.1 Released!">bbSolution 1.0.1 Released!</a></div>
-<div class="contentWrapper">
-	<div class="contentHeader">
-    	<div class="contentHeaderLeft">Category Name Goes Here</div>
-        <div class="contentHeaderRight" id="c_1_i"><a href="javascript:void();" title="Collapse" onClick="toggleThis('c_1_b','c_1_i');"><img src="application/bbSolution_1.0.0/Upload/public/imagesets/master/icons/collapse.png" width="13" height="13" alt="*" class="imgNoBorder"></a></div>
-        <div class="clear"></div>
-  </div>
-  <div id="c_1_b">
-  <div class="contentBody">
-    <table width="100%" border="0" cellspacing="0" cellpadding="0">
-      <tr>
-        <td class="forumListingIcon"><img src="application/bbSolution_1.0.0/Upload/public/imagesets/master/icons/status/forum/new-posts.png" width="32" height="32" alt="*" title="Forum has new posts"></td>
-        <td class="forumListingForumInfo"><a href="?cls=forum&to_do=1" title="Forum Name Here">Forum Name Here</a><br>
-          Forum description will go right here<br>
-          <span class="subForums"><strong>Sub Forums:</strong> <a href="?cls=forum&to_do=1" title="Sub Forum One">Sub Forum One</a></span></td>
-        <td class="forumListingTopicsReplies"><strong>7,543</strong> Topics<br>
-        <strong>4,543</strong> Replies</td>
-        <td class="forumListingLastPostInfo"><img src="application/bbSolution_1.0.0/Upload/public/imagesets/master/images/sam-delete-later.png" width="50" height="50" alt="*" class="userPhotoBorder"><a href="?cls=topic&to_do=1" title="Topic Title Goes Here">Topic Title Goes Here</a> <a href="?cls=topic&amp;to_do=1&amp;page=2#32" title="Go to the last post"><img src="application/bbSolution_1.0.0/Upload/public/imagesets/master/icons/go-to-last-post.gif" width="16" height="16" alt="*" class="imgAlign"></a><br>
-          <strong>By:</strong> <a href="?cls=members&to_do=1" title="View Sam Wilcox's profile" style="color:#FF0000;"><strong>Sam Wilcox</strong></a><br>
-          <span class="timestampText">Date And Time Here</span></td>
-      </tr>
-    </table>
-  </div>
-  <div class="contentBody">
-    <table width="100%" border="0" cellspacing="0" cellpadding="0">
-      <tr>
-        <td class="forumListingIcon"><img src="application/bbSolution_1.0.0/Upload/public/imagesets/master/icons/status/forum/redirect.png" width="32" height="32" alt="*" title="Redirection forum"></td>
-        <td class="forumListingForumInfo"><a href="?cls=forum&to_do=1" title="Forum Name Here">Forum Name Here</a><br>
-          Forum description will go right here</td>
-        <td class="forumListingTopicsReplies"><strong>7,543</strong> Redirct Hits</td>
-        <td class="forumListingLastPostInfo"><strong>---</strong></td>
-      </tr>
-    </table>
-  </div>
-  </div>
-</div>
-<div class="contentWrapperBBIC">
-	<div class="contentHeader">
-    	<div class="contentHeaderLeft">Bulletin Board Information Center</div>
-        <div class="contentHeaderRight" id="bbic_i"><a href="javascript:void();" title="Collapse" onClick="toggleThis('bbic_b','bbic_i');"><img src="application/bbSolution_1.0.0/Upload/public/imagesets/master/icons/collapse.png" width="13" height="13" alt="*" class="imgNoBorder"></a></div>
-        <div class="clear"></div>
-    </div>
-    <div id="bbic_b">
-    <div class="contentBody">
-      <table width="100%" border="0" cellspacing="0" cellpadding="0">
-        <tr>
-          <td class="bbicLeft"><img src="application/bbSolution_1.0.0/Upload/public/imagesets/master/icons/bbic-online.png" width="32" height="32" alt="*"></td>
-          <td class="bbicRight">There are currently <strong>6,454</strong> users online<br>
-            <strong>212</strong> Member(s) | <strong>23</strong> Anonymous User(s) | <strong>334</strong> Guest(s) | <strong>23</strong> Search Bot(s)<br>
-            <a href="?cls=members&to_do=1" title="Last activity: Time here" style="color:#FF0000;"><strong>Sam Wilcox</strong></a><br>
-            <strong>Group Legend:</strong> <a href="?cls=groups&to_do=1" title="Administrators" style="color:#FF0000;"><strong>Administrators</strong></a>, <a href="?cls=groups&to_do=2" title="Moderators" style="color:#00F;"><strong>Moderators</strong></a></td>
+<div class="topWrapper">
+	<div class="topLogoBar">
+	  <table class="topLogoBarTable" cellspacing="0" cellpadding="0">
+	    <tr>
+	      <td class="topLogoBarLeft"><a href="?cls=index" title="bbSolution Development"><img src="application/bbSolution_1.0.0/Upload/public/imagesets/master/images/bb-logo.png" width="253" height="49" alt="bbSolution Development" class="imgNoBorder"></a></td>
+	      <td class="topLogoBarRight"><ul>
+	        <li>Good Evening <strong>Guest</strong>!</li>
+	        <li>|</li>
+	        <li><img src="application/bbSolution_1.0.0/Upload/public/imagesets/master/icons/login.png" width="16" height="16" alt="*" class="imgAlign"> <a href="?cls=authenticate" title="Log In">Log In</a></li>
+	        <li><img src="application/bbSolution_1.0.0/Upload/public/imagesets/master/icons/create-account.png" width="16" height="16" alt="*" class="imgAlign"> <a href="?cls=createaccount" title="Create Account">Create Account</a></li>
+          </ul></td>
         </tr>
       </table>
-    </div>
-    <div class="contentBody">
-      <table width="100%" border="0" cellspacing="0" cellpadding="0">
-        <tr>
-          <td class="bbicLeft"><img src="application/bbSolution_1.0.0/Upload/public/imagesets/master/icons/bbic-stats.png" width="32" height="32" alt="*"></td>
-          <td class="bbicRight">We would like to welcome our newest member, <a href="?cls=members&to_do=1" title="View Sam Wilcox's profile" style="color:#FF0000;"><strong>Sam Wilcox</strong></a>, making a total of <strong>54,343</strong> member(s)!<br>
-            Our member's have posted a total of <strong>543,432</strong> posts! That equals <strong>232,334</strong> replies to <strong>123,433</strong> topics!<br>
-            As of today, our top posting member is <a href="?cls=members&to_do=1" title="View Sam Wilcox's profile" style="color:#FF0000;"><strong>Sam Wilcox</strong></a>!<br>
-            The most user(s) ever online at once was <strong>45,432</strong>! ( <span class="timestampText">Date and Time here</span> )</td>
-        </tr>
-      </table>
-    </div>
-    <div class="contentBody">
-      <table width="100%" border="0" cellspacing="0" cellpadding="0">
-        <tr>
-          <td class="bbicLeft"><img src="application/bbSolution_1.0.0/Upload/public/imagesets/master/icons/bbic-birthdays.png" width="32" height="32" alt="*"></td>
-          <td class="bbicRight">There are currently <strong>5</strong> user(s) celebrating a birthday today!<br>
-          <a href="?cls=members&to_do=1" title="View Sam Wilcox's profile" style="color:#FF0000;"><strong>Sam Wilcox</strong></a> (33)</td>
-        </tr>
-      </table>
-    </div>
-    </div>
-</div>
-<div class="bottomBar">
-	<div class="bottomBarLeft">
-	  <form name="form1" method="post" action="">
-	    <select name="theme" id="theme">
-          <optgroup label="Quick Theme Selector">
-	      <option value="1" selected>bbSolution Default</option>
-          </optgroup>
-        </select>
-        <select name="language" id="language">
-          <optgroup label="Quick Language Selector">
-          <option value="1" selected>English (US-American)</option>
-          </optgroup>
-        </select>
-	  </form>
 	</div>
-    <div class="bottomBarMiddle">
-      <ul>
-        <li><img src="application/bbSolution_1.0.0/Upload/public/imagesets/master/icons/stopwatch.png" width="16" height="16" alt="*" class="imgAlign"> Page processed in <strong>1.20</strong> seconds</li>
-        <li><img src="application/bbSolution_1.0.0/Upload/public/imagesets/master/icons/sql-queries.png" width="16" height="16" alt="*" class="imgAlign"> <strong>7</strong> SQL queries executed</li>
-        <li><img src="application/bbSolution_1.0.0/Upload/public/imagesets/master/icons/gzip.png" width="16" height="16" alt="*" class="imgAlign"> GZIP compression <strong>enabled</strong></li>
-      </ul>
-    </div>
-    <div class="bottomBarRight">
-      <ul>
-        <li><a href="?cls=index&to_do=markall" title="Mark entire bulletin board as read">Mark all read</a></li>
-        <li><a href="#top" title="Back to top">Back to top</a></li>
-      </ul>
-    </div>
-    <div class="clear"></div>
 </div>
-<div class="copyrightBar">
-	<div class="copyrightBarLeft">All times are Boise MST<br>
-    <strong>Time now:</strong> Time here </div>
-    <div class="copyrightBarRight">Powered by <a href="http://www.bb-solution.org" title="bbSolution" target="_blank">bbSolution</a> Version 1.0.0<br>
-      Copyright 2014 bbSolution. All Rights Reserved</div>
-    <div class="clear"></div>
+<div class="menuBarWrapper">
+	<div class="menuBar"><a href="?cls=index" title="Forums">Forums</a> <a href="?cls=members&to_do=list" title="Members">Members</a> <a href="?cls=search" title="Search">Search</a> <a href="?cls=online" title="Who's Online?">Who's Online?</a> <a href="?cls=help" title="Help">Help</a></div>
 </div>
+<div class="navBarWrapper">
+	<div class="navBar"><img src="application/bbSolution_1.0.0/Upload/public/imagesets/master/icons/nav_folder.png" width="16" height="16" alt="*" class="imgAlign"> <strong>You are here:</strong> <a href="?cls=index" title="Forums">Forums</a></div>
+</div>
+<div class="wrapper">
+	<div class="insideWrapper">
+		<div class="newsBar"><strong>Latest News:</strong> <a href="?cls=topic&to_do=1" title="bbSolution 1.0.1 Released!">bbSolution 1.0.1 Released!</a></div>
+    	<div class="contentHeader">
+        	<div class="contentHeaderLeft">Category Name Here</div>
+            <div class="contentHeaderRight" id="c_1_i"><a href="javascript:void();" title="Collapse" onClick="toggleThis('c_1_b','c_1_i');"><img src="application/bbSolution_1.0.0/Upload/public/imagesets/master/icons/collapse.png" width="16" height="16" alt="*" class="imgNoBorder"></a></div>
+            <div class="clear"></div>
+      </div>
+      <div id="c_1_b">
+      <div class="contentContainer">
+        <table class="forumListingTable">
+          <tr>
+            <td class="forumListingIcon"><img src="application/bbSolution_1.0.0/Upload/public/imagesets/master/icons/status/forum/new-posts.png" width="32" height="32" alt="*" title="Forum contains new posts"></td>
+            <td class="forumListingForumInfo"><span class="forumTitleLinkTxt"><a href="?cls=forum&to_do=1" title="Forum Name Here">Forum Name Here</a></span><br>
+            <span class="forumDescription">The forum description goes right here.</span><br>
+            <span class="subForumTxt"><strong>Sub Forums:</strong> <a href="?cls=forum&to_do=1" title="Sub Forum Name">Sub Forum Name</a></span></td>
+            <td class="forumListingStats"><strong>45,432</strong> Topics<br>
+            <strong>32,333</strong> Replies</td>
+            <td class="forumListingLastPost">
+            	<div class="forumListingLastPostLeft"><img src="application/bbSolution_1.0.0/Upload/public/imagesets/master/images/sam-delete-later.png" width="50" height="50" alt="*" class="userPhoto"></div>
+                <div class="forumListingLastPostRight"><a href="?cls=topic&to_do=1" title="Topic Title Goes Here">Topic Title Goes Here</a> <a href="?cls=topic&to_do=1&page=2#p123" title="Go to the last post"><img src="application/bbSolution_1.0.0/Upload/public/imagesets/master/icons/go-to-last-post.gif" width="16" height="16" alt="*" class="imgAlign"></a><br>
+                  <strong>By</strong>: <a href="?cls=members&to_do=1" title="View Sam Wilcox's profile">Sam Wilcox</a><br>
+                <span class="timestampTxt">Date And Time Here</span>
+                </div>
+            </td>
+          </tr>
+        </table>
+      </div>
+            <div class="contentContainer">
+        <table class="forumListingTable">
+          <tr>
+            <td class="forumListingIcon"><img src="application/bbSolution_1.0.0/Upload/public/imagesets/master/icons/status/forum/redirect.png" width="32" height="32" alt="*" title="This forum will redirect you"></td>
+            <td class="forumListingForumInfo"><span class="forumTitleLinkTxt"><a href="?cls=forum&to_do=1" title="Forum Name Here">Forum Name Here</a></span><br>
+            <span class="forumDescription">The forum description goes right here.</span></td>
+            <td class="forumListingStats"><strong>45,432</strong> Redirects</td>
+            <td class="forumListingLastPost">---</td>
+          </tr>
+        </table>
+      </div>
+      </div>
+      <div class="verticalSpacer"></div>
+      <div class="bbicTitle"><img src="application/bbSolution_1.0.0/Upload/public/imagesets/master/icons/bbic-online.png" width="22" height="22" alt="*" class="imgAlign"> Who's Online Right Now?</div>
+      <div class="bbicContent">There are currently <strong>5,432</strong> users online within the last 30 minutes.<br>
+      <strong>132</strong> member(s)  | <strong>32</strong> anonymous user(s) | <strong>32</strong> guest(s) | <strong>2</strong> search bot(s)<br>
+      <br>
+      Members online: <a href="?cls=members&to_do=1" title="Last activity: Time here" style="color:#F00;"><strong>Sam Wilcox</strong></a><br>
+      Group legend: <a href="?cls=groups&to_do=1" title="Administrators" style="color:#F00;"><strong>Administrators</strong></a>, <a href="?cls=groups&to_do=1" title="Moderators" style="color:#00F;">Moderators</a></div>
+      <div class="bbicTitle"><img src="application/bbSolution_1.0.0/Upload/public/imagesets/master/icons/bbic_stats.png" width="22" height="22" alt="*" class="imgAlign"> Statistics</div>
+      <div class="bbicContent">Welcome to our newest registered member, <a href="?cls=members&to_do=1" title="View Sam Wilcox's profile" style="color:#F00;"><strong>Sam Wilcox</strong></a>!<br>
+      <strong>43,543</strong> members | <strong>654,654</strong> posts | <strong>343,432</strong> topics | <strong>143,543</strong> replies <br>
+      Most users ever online at one time was <strong>5,432</strong> on <span class="timestampTxt">Date and Time!</span></div>
+      <div class="bbicTitle"><img src="application/bbSolution_1.0.0/Upload/public/imagesets/master/icons/bbic_birthdays.png" width="22" height="22" alt="*" class="imgAlign"> Member Birthdays</div>
+      <div class="bbicContent">There are currently 54 members celebrating a birthday today!<br>
+      <a href="?cls=members&to_do=1" title="View Sam Wilcox's profile" style="color:#F00;"><strong>Sam Wilcox</strong></a> (<strong>32</strong>)</div>
+      <div class="bottomBar">
+      	<div class="bottomBarLeft">
+      	  <form name="form1" method="post" action="">
+      	    <select name="theme" id="theme">
+              <optgroup label="Quick Theme Selector">
+      	      <option value="1">bbSolution Default</option>
+              </optgroup>
+   	        </select>
+   	        <select name="select2" id="select2">
+              <optgroup label="Quick Language Selector">
+   	          <option value="1">English (US-American)</option>
+              </optgroup>
+            </select>
+      	  </form>
+      	</div>
+        <div class="bottomBarRight">
+          <ul>
+            <li class="allTimesBottomBar">All times are Boise</li>
+            <li><a href="?cls=groups&to_do=leaders" title="View Leaders">View leaders</a></li>
+            <li><a href="#top" title="Go to top">Go to top</a></li>
+          </ul>
+        </div>
+        <div class="clear"></div>
+      </div>
+      <div class="copyrightBar">
+      	<div class="copyrightBarLeft">[Page processed in 0.12 seconds] [5 SQL queries] [GZIP enabled]</div>
+        <div class="copyrightBarRight">Powered by <a href="http://www.bb-solution.org" title="Click here to visit bbSolution">bbSolution</a> Version 1.0.0<br>
+          &copy;Copyright 2014 bbSolution &reg;All Rights Reserved<br>
+          Licensed to: bbSolution
+        </div>
+        <div class="clear"></div>
+      </div>
+    </div>
+</div>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
 <p>&nbsp;</p>
 <p>&nbsp;</p>
 <p>&nbsp;</p>

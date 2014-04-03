@@ -1028,6 +1028,369 @@ class BBSolutionMaster
         $this->THEME->BBS  =& $this;
         $this->THEME->LANG = $this->LANG;
     }
+    
+    public function build_forum_nav_links( $forum_id )
+    {
+        // Setup a few vars first
+        $parent_id = 0;
+        $depth     = 0;
+        $next      = false;
+        
+        // Go throug the forums
+        $r = $this->get_data( 'forums', 'forum_id' );
+        
+        if ( $r != false )
+        {
+            foreach ( $r as $k => $v )
+            {
+                // Match the passed in forum id
+                if ( $v['forum_id'] == $forum_id )
+                {
+                    $parent_id   = $v['forum_parent_id'];
+                    $depth       = $v['depth'];
+                    $forum_title = $v['forum_title'];
+                }
+            }
+        }
+        
+        // Initialize the build array
+        $build = array();
+        
+        // Add the first link above to the nav tree
+        $this->T = array( 'forum_title' => $forum_title,
+                          'forum_url'   => $this->seo_url( 'forum', $forum_id ) );
+                          
+        $build[] = $this->THEME->html_forum_nav_tree_add();
+        
+        // Parse through all the child forums, etc
+        if ( ( $parent_id != 0 ) AND ( $depth != 0 ) )
+        {
+            $current_depth = $depth;
+            
+            while ( $current_depth >= 0 )
+            {
+                if ( $next ) break;
+                
+                $r = $this->get_data( 'forums', 'forum_id' );
+                
+                if ( $r != false )
+                {
+                    foreach ( $r as $k => $v )
+                    {
+                        if ( ( $v['forum_id'] == $parent_id ) AND ( $v['depth'] == $current_depth ) )
+                        {
+                            if ( $v['forum_parent_id'] != 0 )
+                            {
+                                $parent_id = $v['forum_parent_id'];
+                            }
+                            elseif ( ( $v['forum_parent_id'] == 0 ) AND ( $v['depth'] == 0 ) )
+                            {
+                                $next = true;
+                            }
+                            
+                            // Add to the build array
+                            $this->T = array( 'forum_title' => $v['forum_title'],
+                                              'forum_url'   => $this->seo_url( 'forum', $v['forum_id'] ) );
+                                              
+                            $build[] = $this->THEME->html_forum_nav_tree_add();
+                        }
+                    }
+                    
+                    $current_depth = ( $current_depth - 1 );
+                }
+            }
+        }
+        
+        // Reverse the array to get all contents in the correct order
+        array_reverse( $build );
+        $nav = '';
+        
+        // Append each forum to the $nav var
+        foreach ( $build as $forum )
+        {
+            $nav .= $forum;
+        }
+        
+        // Return the nav links
+        return $nav;
+    }
+    
+    public function calculate_age( $m, $d, $y )
+    {
+        $age_time = mktime( 0, 0, 0, $m, $d, $y );
+        $age      = ( $age_time < 0 ) ? ( time() + ( $age_time * -1 ) ) : time() - $age_time;
+        $yr       = 60 * 60 * 24 * 365;
+        
+        // Return the age
+        return floor( $age / $yr ); 
+    }
+    
+    public function parse_timestamp( $timestamp, $today = false, $r_date = false, $r_time = false )
+    {
+        // Get all our application date/time settings
+        $time_format = $this->CFG['dt_time_format'];
+        $date_format = $this->CFG['dt_date_format'];
+        $show_today  = $this->CFG['dt_show_today'];
+        
+        // Form the full date and time format
+        $full_format = $date_format . ' ' . $time_format;
+        
+        // Are we just returning the date?
+        if ( $r_date ) return date( $date_format, $timestamp );
+        
+        // Are we just returning the time?
+        if ( $r_time ) return date( $time_format, $timestamp );
+        
+        // Check to see if we are going to display the "Today at 12:23:32PM"
+        // Of course, if the timestamp is todays
+        switch ( $today )
+        {
+            case true:
+            switch ( $show_today )
+            {
+                case true:
+                // We will check to see if the timestamp is todays
+                $todays_date = date( 'm/d/y', mktime( 0, 0, 0, date( 'm' ), date( 'd' ), date( 'Y' ) ) );
+                
+                if ( date( 'm/d/y', $timestamp ) == $todays_date )
+                {
+                    $timestr    = date( $time_format, $timestamp );
+                    $lang_today = $this->LANG['dt_today'];
+                    $lang_today = str_replace( '%%TIME%%', $timestr, $lang_today );
+                    
+                    // Return the time
+                    return $lang_today;
+                }
+                else
+                {
+                    // Looks like its not todays date, return a full format
+                    return date( $full_format, $timestamp );
+                }
+                break;
+                
+                case false:
+                // Not going to check for today, just return a full format
+                return date( $full_format, $timestamp );
+                break;
+            }
+            break;
+            
+            case false:
+            // Not going to check for today, just return a full format
+            return date( $full_format, $timestamp );
+            break;
+        }
+    }
+    
+    public function check_for_unread_posts( $method, $forum_id = '', $topic_id = '' )
+    {
+        // Which method are we doing?
+        switch ( $method )
+        {
+            case 'forum':
+            $unread = true;
+            
+            // Go through the forum read table
+            $r = $this->get_data( 'forums_read', 'read_id' );
+            
+            if ( $r != false )
+            {
+                foreach ( $r as $k => $v )
+                {
+                    if ( ( $v['read_forum_id'] == $forum_id ) AND ( $v['read_member_id'] == $this->MEMBER['id'] ) )
+                    {
+                        // Get the topics
+                        $r2 = $this->get_data( 'topics', 'topic_id' );
+                        
+                        if ( $r2 != false )
+                        {
+                            foreach ( $r2 as $key => $val )
+                            {
+                                if ( $val['topic_id'] == $v['read_topic_id'] )
+                                {
+                                    $last_post = $val['topic_lastpost_timestamp'];
+                                }
+                            }
+                        }
+                        
+                        // Compare to see if the post has been read or not
+                        if ( $last_post <= $v['read_last_read_timestamp'] ) $unread = false;
+                    }
+                }
+            }
+            
+            // Return the result
+            return $unread;
+            break;
+            
+            case 'topic':
+            $unread = true;
+            
+            // Go thrugh the forum read table
+            $r = $this->get_data( 'forums_read', 'read_id' );
+            
+            if ( $r != false )
+            {
+                foreach ( $r as $k => $v )
+                {
+                    if ( ( $v['read_topic_id'] == $topic_id ) AND ( $v['read_member_id'] == $this->MEMBER['id'] ) )
+                    {
+                        // Go through the topics
+                        $r2 = $this->get_data( 'topics', 'topic_id' );
+                        
+                        if ( $r2 != false )
+                        {
+                            foreach ( $r2 as $key => $val )
+                            {
+                                if ( $val['topic_id'] == $topic_id )
+                                {
+                                    $last_post = $val['topic_lastpost_timestamp'];
+                                }
+                            }
+                        }
+                        
+                        // Compare to see if the post has been read or not
+                        if ( $last_post <= $v['read_last_read_timestamp'] ) $unread = false;
+                    }
+                }
+            }
+            
+            // Return the result
+            return $unread;
+            break;
+        }
+    }
+    
+    public function generate_form_token()
+    {
+        $chars = substr( str_shuffle( "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZacdefghijkmopqrstuvwxy" ), 0, 32 );
+        $chars = sha1( md5( $chars ) );
+        
+        // Return the token
+        return md5( $chars . $md5( $this->AGENT['agent'] ) );
+    }
+    
+    public function generate_login_token( $username )
+    {
+        $chars = substr( str_shuffle( "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZacdefghijkmopqrstuvwxy" ), 0, 32 );
+        $chars = sha1( md5( $chars ) );
+        
+        // Return the token
+        return md5( $chars . md5( $username ) );
+    }
+    
+    public function generate_pagination( $pre_url, $items, $perpage, $page )
+    {
+        // Figure out what we need to append to the URL
+        ( $this->CFG['search_optimize'] ) ? $append = '/' : $append = '&amp;page=';
+        
+        // Form the pre-url
+        $pre_url . $append;
+        
+        // How many total pages do we got goin?
+        $total_pages = ceil( $items / $perpage );
+        
+        // If total pages = 0, no need to return any links
+        if ( $total_pages == 0 ) return '';
+        
+        if ( $total_pages < 5 )
+        {
+            if ( $page > 1 )
+            {
+                $prev = ( $page - 1 );
+                $previous = '<a href="' . $pre_url . $prev . '" title="' . $this->LANG['next_page'] . '">&#171;</a>';
+            }
+            
+            for ( $i = 1; $i <= $total_pages; $i++ )
+            {
+                if ( $page == $i )
+                {
+                    $pages .= ' <strong>' . $i . '</strong>';
+                }
+                else
+                {
+                    $pages .= ' <a href="' . $pre_url . $i . '" title="' . $i . '">' . $i . '</a>';
+                }
+            }
+            
+            if ( $page < $total_pages )
+            {
+                $next_page = ( $page + 1 );
+                $next      = ' <a href="' . $pre_url . $next_page . '" title="' . $this->LANG['previous_page'] . '">&#187;</a> ';
+            }
+            
+            // Return the links
+            return $previous . $pages . $next;
+        }
+        
+        // Determine if we need to list a go to first or last page
+        ( $page > 1 ) ? $go_first = '<a href="' . $pre_url . '1" title="' . $this->LANG['first_page'] . '">1</a>' : $go_first = '';    
+        ( ( $total_pages - $page ) > 5 ) ? $go_last = ' <a href="' . $pre_url . $total_pages . '" title="' . $this->LANG['last_page'] . '">' . $total_pages . '</a> ' : $go_last = '';
+        
+        $end  = ( $total_pages - 5 );
+        $more = ( $page + 5 );
+        
+        if ( $page < $end )
+        {
+            if ( $page > 1 )
+            {
+                $prev = ( $page - 1 );
+                $previous = '<a href="' . $pre_url . $prev . '" title="' . $this->LANG['previous_page'] . '">&#171;</a>';
+            }
+            
+            for ( $i = $page; $i <= $more; $i++ )
+            {
+                if ( $page == $i )
+                {
+                    $pages .= ' <strong>' . $i . '</strong>';
+                }
+                else
+                {
+                    $pages .= ' <a href="' . $pre_url . $i . '" title="' . $i . '">' . $i . '</a>';
+                }
+            }
+            
+            if ( $page < $end )
+            {
+                $next_page = ( $page + 1 );
+                $next      = ' <a href="' . $pre_url . $next_page . '" title="' . $this->LANG['next_page'] . '">&#187;</a>';
+            }
+        }
+        else
+        {
+            if ( $page == $total_pages )
+            {
+                $prev     = ( $total_pages - 1 );
+                $previous = '<a href="' . $pre_url . $prev . '" title="' . $this->LANG['previous_page'] . '">&#171;</a>';
+            }
+            else
+            {
+                $prev     = ( $page - 1 );
+                $previous = '<a href="' . $pre_url . $prev . '" title="' . $this->LANG['previous_page'] . '">&#171;</a>';
+            }
+            
+            for ( $i = $end; $i <= $total_pages; $i++ )
+            {
+                if ( $page == $i )
+                {
+                    $pages .= ' <strong>' . $i . '</strong>';
+                }
+                else
+                {
+                    $pages .= ' <a href="' . $pre_url . $i . '" title="' . $i . '">' . $i . '</a>';
+                }
+            }
+            
+            if ( $page < $total_pages )
+            {
+                $next_page = ( $page + 1 );
+                $next      = ' <a href="' . $pre_url . $next_page . '" title="' . $this->LANG['next_page'] . '">&#187;</a>';
+            }
+        }
+        
+        // Return the page links
+        return $go_first . $previous . $pages . $next . $go_last;
+    }
 }
 
 ?>

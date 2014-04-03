@@ -41,5 +41,8 @@ $CFG['cookie_domain'] = '';
 $CFG['theme_id'] = 1;
 $CFG['language_id'] = 1;
 $CFG['dt_timezone'] = 'Boise';
+$CFG['dt_time_format'] = '';
+$CFG['dt_date_format'] = '';
+$CFG['dt_show_today'] = true;
 
 ?>
