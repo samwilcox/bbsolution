@@ -231,6 +231,75 @@ function toggleThis( eb,ei )
 EOF;
 }
 
+public function html_theme_select_option()
+{
+return <<<EOF
+<option{$this->BBS->T['selected']} value="{$this->BBS->T['theme_value']}">{$this->BBS->T['theme_title']}</option>
+EOF;
+}
+
+public function html_lang_select_option()
+{
+return <<<EOF
+<option{$this->BBS->T['selected']} value="{$this->BBS->T['lang_value']}">{$this->BBS->T['lang_title']}</option>
+EOF;
+}
+
+public function html_debug_information()
+{
+return <<<EOF
+[{$this->BBS->T['page_processed']}] [{$this->BBS->T['total_queries']}] [{$this->BBS->T['gzip']}]
+EOF;
+}
+
+public function html_licensed_to()
+{
+return <<<EOF
+<br>{$this->BBS->T['licensed_to']}
+EOF;
+}
+
+public function html_bottom_footer()
+{
+return <<<EOF
+      <div class="bottomBar">
+      	<div class="bottomBarLeft">
+      	  <form name="form1" method="post" action="{$this->BBS->script_url}">
+      	    <select name="theme" id="theme">
+              <optgroup label="{$this->LANG['quick_theme_selector']}">
+      	      {$this->BBS->T['theem_options']}
+              </optgroup>
+   	        </select>
+   	        <select name="lang" id="lang">
+              <optgroup label="{$this->LANG['quick_lang_selector']}">
+   	          {$this->BBS->T['lang_options']}
+              </optgroup>
+            </select>
+      	  </form>
+      	</div>
+        <div class="bottomBarRight">
+          <ul>
+            <li class="allTimesBottomBar">{$this->BBS->T['all_times']}</li>
+            <li><a href="{$this->BBS->script_url}?cls=groups&to_do=leaders" title="{$this->LANG['view_leaders']}">{$this->LANG['view_leaders']}</a></li>
+            <li><a href="#top" title="{$this->LANG['go_to_top']}">{$this->LANG['go_to_top']}</a></li>
+          </ul>
+        </div>
+        <div class="clear"></div>
+      </div>
+      <div class="copyrightBar">
+      	<div class="copyrightBarLeft">{$this->BBS->T['debug']}</div>
+        <div class="copyrightBarRight">{$this->LANG['powered_by']} <a href="http://www.bb-solution.org" title="Click here to visit bbSolution">bbSolution</a> {$this->LANG['version']} {$this->BBS->this_version}<br>
+          &copy;Copyright 2014 bbSolution &reg;All Rights Reserved{$this->BBS->T['licensed_to']}
+        </div>
+        <div class="clear"></div>
+      </div>
+    </div>
+</div>
+</body>
+</html>
+EOF;
+}
+
 }
 
 ?>

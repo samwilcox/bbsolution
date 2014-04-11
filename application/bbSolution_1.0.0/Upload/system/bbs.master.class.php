@@ -306,15 +306,18 @@ class BBSolutionMaster
     
     public function start_script_execution_timer()
     {
-        $this->TIMER['start'] = explode( ' ', microtime() );
-        $this->TIMER['start'] = $this->TIMER['start'][1] + $this->TIMER['start'][1];
+        $mt                   = microtime();
+        $mt                   = explode( ' ', $mt );
+        $mt                   = $mt[1] + $mt[0];
+        $this->TIMER['start'] = $mt;
     }   
     
     public function stop_script_execution_timer()
     {
-        $this->TIMER['stop'] = explode( ' ', microtime() );
+        $mt                  = microtime();
+        $this->TIMER['stop'] = explode( ' ', $mt );
         $this->TIMER['stop'] = $this->TIMER['stop'][1] + $this->TIMER['stop'][0];
-        $this->TIMER['stop'] = round( ( $this->TIMER['stop'] - $this->TIMER['start'] ) );
+        $this->TIMER['stop'] = round( ( $this->TIMER['stop'] - $this->TIMER['start'] ), 2 );
     }
     
     public function initialize_gzip_compression()
@@ -2253,6 +2256,101 @@ class BBSolutionMaster
             echo $this->THEME->html_top_header_guest();
             break;
         }        
+    }
+    
+    public function bottom_footer()
+    {
+        // Find out which theme and language we are currently using.
+        $r = $this->get_data( 'installed_themes', 'theme_id' );
+        
+        if ( $r != false )
+        {
+            foreach ( $r as $k => $v )
+            {
+                ( $v['theme_id'] == $this->CFG['theme_id'] ) ? $selected = ' selected="selected"' : $selected = '';
+                
+                $this->T = array( 'theme_title' => $v['theme_name'],
+                                  'theme_value' => $v['theme_id'],
+                                  'selected'     => $selected );
+                                  
+                $theme_options .= $this->THEME->html_theme_select_option();
+            }
+        }
+        
+        $r = $this->get_data( 'installed_languages', 'language_id' );
+        
+        if ( $r != false )
+        {
+            foreach ( $r as $k => $v )
+            {
+                ( $v['language_id'] == $this->CFG['language_id'] ) ? $selected = ' selected="selected"' : $selected = '';
+                
+                $this->T = array( 'lang_title' => $v['language_name'],
+                                  'lang_value' => $v['language_id'],
+                                  'selected'     => $selected );
+                                  
+                $language_options .= $this->THEME->html_lang_select_option();
+            }
+        }
+        
+        $lang_all_times      = $this->LANG['all_times'];
+        $lang_page_processed = $this->LANG['page_processed'];
+        $lang_total_queries  = $this->LANG['total_queries'];
+        $lang_gzip           = $this->LANG['gzip'];
+        
+        $lang_all_times = str_replace( '%%TIMEZONE%%', $this->CFG['dt_timezone'], $lang_all_times );
+        
+        // Are we going to show debug information?
+        switch ( $this->check_feature_permissions( 'debug_information' ) )
+        {
+            case true:
+            // Get all our debug information together.
+            $this->stop_script_execution_timer();
+            
+            ( $this->CFG['gzip_compression'] ) ? $gzip_status = $this->LANG['enabled'] : $gzip_status = $this->LANG['disabled'];
+            
+            $lang_page_processed = str_replace( '%%SECONDS%%', $this->TIMER['stop'], $lang_page_processed );
+            $lang_total_queries  = str_replace( '%%TOTAL%%', number_format( $this->DB->db_get_total_queries() ), $lang_total_queries );
+            $lang_gzip           = str_replace( '%%SETTING%%', $gzip_status, $lang_gzip );
+            
+            $this->T = array( 'page_processed' => $lang_page_processed,
+                              'total_queries'  => $lang_total_queries,
+                              'gzip'           => $lang_gzip );
+                              
+            $debug_info = $this->THEME->html_debug_information(); 
+            break;
+            
+            case false:
+            $debug_info = '';
+            break;
+        }
+        
+        // Are we going to be displaying who this application is licensed to?
+        switch ( $this->CFG['licensed_to_display'] )
+        {
+            case true:
+            $lang_licensed_to = $this->LANG['licensed_to'];
+            
+            $lang_licensed_to = str_replace( '%%NAME%%', $this->CFG['licensed_to'], $lang_licensed_to );
+            
+            $this->T = array( 'licensed_to' => $lang_licensed_to );
+            
+            $licensed_to = $this->THEME->html_licensed_to();
+            break;
+            
+            case false:
+            $licensed_to = '';
+            break;
+        }
+        
+        // Finally to display the footer.
+        $this->T = array( 'theme_options' => $theme_options,
+                          'lang_options'  => $language_options,
+                          'all_times'     => $lang_all_times,
+                          'debug'         => $debug_info,
+                          'licensed_to'   => $licensed_to );
+                          
+        echo $this->THEME->html_bottom_footer();
     }
 }
 

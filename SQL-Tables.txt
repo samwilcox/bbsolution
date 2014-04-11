@@ -36,6 +36,10 @@ member_linked_photo 1 = on 0 = off
 member_photo_url
 member_facebook_auth_oid
 member_facebook_photo
+member_dob_month
+member_dob_day
+member_dob_year
+member_show_age
 
 - groups
 group_id
@@ -93,6 +97,11 @@ language_author_website_url
 
 - statistics
 statistic_id
+statistic_newest_member_id
+statistic_total_members
+statistic_total_posts
+statistic_total_topics
+statistic_total_replies
 statistic_online_record
 statistic_online_record_timestamp
 

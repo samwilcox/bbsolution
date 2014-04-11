@@ -577,8 +577,11 @@ class BBSolutionSessions
         {
             foreach ( $r as $k => $v )
             {
-                // Get the current record number
-                $current_record = $v['statistic_online_record'];
+                if ( $v['statistic_id'] == 1 )
+                {
+                    // Get the current record number
+                    $current_record = $v['statistic_online_record'];
+                }
             }
         }
         
@@ -595,6 +598,9 @@ class BBSolutionSessions
         if ( $online > $current_record )
         {
             // Got a new record, update the info
+            $this->BBS->TOSQL = array( 'online' => $online,
+                                       'time'   => time() );
+            
             $this->BBS->DB->db_query( $this->BBS->SQL->sql_update_statistics_online_record() );
             
             // Update the database cache

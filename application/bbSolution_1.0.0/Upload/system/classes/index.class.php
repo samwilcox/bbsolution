@@ -360,6 +360,211 @@ class index
             
             echo $this->THEME->html_category_footer();
         }
+        
+        // If the bulletin board information center enabled and does the
+        // current user have permissions to see it?
+        switch ( $this->BBS->check_feature_permissions( 'bbic' ) )
+        {
+            case true:
+            // User has permission and its enabled.
+            echo $this->THEME->html_bbic_start();
+            
+            // Permissions for Who's Online?
+            switch ( $this->BBS->check_feature_permissions( 'bbic_whos_online' ) )
+            {
+                case true:
+                // Let's find out who is currently online right now.
+                $total_online    = 0;
+                $total_members   = 0;
+                $total_anonymous = 0;
+                $total_guests    = 0;
+                $total_bots      = 0;
+                $x               = 0;
+                $online_list     = '';
+                
+                // Grab session information.
+                $q = $this->BBS->DB->db_query( $this->BBS->SQL->sql_select_sessions_online() );
+                
+                while ( $r = $this->BBS->DB->db_fetch_object( $q ) )
+                {
+                    // Determine what user, and update counts.
+                    if ( ( $r->session_member_id == 0 ) AND ( $r->session_search_bot == 0 ) )
+                    {
+                        $total_online++;
+                        $total_guests++;
+                    }
+                    elseif ( ( $r->session_member_id == 0 ) AND ( $r->session_search_bot == 1 ) )
+                    {
+                        $total_online++;
+                        $total_bots++;
+                        
+                        if ( $x == 0 ) { $sep = ''; $x++; } else { $sep = ', '; }
+                        
+                        $online_list .= $sep . $r->session_search_bot_name;
+                    }
+                    elseif ( ( ( $r->session_member_id != 0 ) AND ( $r->session_search_bot == 0 ) AND ( $r->session_anonymous == 1 ) ) )
+                    {
+                        $total_online++;
+                        $total_anonymous++;
+                    }
+                    else
+                    {
+                        $total_online++;
+                        $total_members++;
+                        
+                        if ( $x == 0 ) { $sep = ''; $x++; } else { $sep = ', '; }
+                        
+                        $lang_last_activity = $this->LANG['last_activity'];
+                        $lang_last_activity = str_replace( '%%TIMESTAMP%%', $this->BBS->parse_timestamp( $r->session_last_click, false, false, true ), $lang_last_activity );
+                        
+                        $online_list .= $this->BBS->get_member_link( $r->session_member_id, $lang_last_activity, $sep );
+                    }
+                }
+                
+                $this->BBS->DB->db_free_result( $q );
+                
+                if ( $online_list == '' ) $online_list = $this->LANG['no_members_online'];
+                
+                // Get the group legend.
+                $group_legend = '';
+                $x            = 0;
+                
+                $r = $this->BBS->get_data( 'groups', 'group_id' );
+                
+                if ( $r != false )
+                {
+                    foreach ( $r as $k => $v )
+                    {
+                        if ( $v['group_display'] == 1 )
+                        {
+                            if ( $x == 0 ) { $sep = ''; $x++; } else { $sep = ', '; }
+                            
+                            $group_legend .= $this->BBS->get_group_link( $v['group_id'], '', $sep );
+                        }
+                    }
+                }
+                
+                if ( $group_legend == '' ) $group_legend = $this->LANG['no_groups'];
+                
+                // Format all the numbers.
+                $total_online    = number_format( $total_online );
+                $total_members   = number_format( $total_members );
+                $total_guests    = number_format( $total_guests );
+                $total_anonymous = number_format( $total_anonymous );
+                $total_bots      = number_format( $total_bots );
+                
+                // Replace a few vars within our language files.
+                $lang_currently_online = $this->LANG['currently_online'];
+                $lang_online_list      = $this->LANG['online_list'];
+                $lang_members_online   = $this->LANG['members_online'];
+                $lang_group_legend     = $this->LANG['group_legend'];
+                
+                $lang_currently_online = str_replace( '%%TOTAL%%', $total_online, $lang_currently_online );
+                $lang_currently_online = str_replace( '%%TIMEOUT%%', $this->BBS->CFG['session_timeout'], $lang_currently_online );
+                $lang_online_list      = str_replace( '%%MEMBERS%%', $total_members, $lang_online_list );
+                $lang_online_list      = str_replace( '%%ANONYMOUS%%', $total_anonymous, $lang_online_list );
+                $lang_online_list      = str_replace( '%%GUESTS%%', $total_guests, $lang_online_list );
+                $lang_online_list      = str_replace( '%%BOTS%%', $total_bots, $lang_online_list );
+                $lang_group_legend     = str_replace( '%%LEGEND%%', $group_legend, $lang_group_legend );
+                $lang_members_online   = str_replace( '%%ONLINELIST%%', $online_list, $lang_members_online );
+                
+                $this->BBS->T = array( 'currently_online' => $lang_currently_online,
+                                       'online_list'      => $lang_online_list,
+                                       'members_online'   => $lang_members_online,
+                                       'group_legend'     => $lang_group_legend );
+                                       
+                echo $this->THEME->html_bbic_whos_online();
+                break;
+            }
+            
+            // Permission for Statistics?
+            switch ( $this->BBS->check_feature_permissions( 'bbic_statistics' ) )
+            {
+                case true:
+                // Get the statistic information from the database.
+                $r = $this->BBS->get_data( 'statistics', 'statistic_id' );
+                
+                if ( $r != false )
+                {
+                    foreach ( $r as $k => $v )
+                    {
+                        if ( $v['statistic_id'] == 1 )
+                        {                            
+                            $lang_newest_member     = $this->LANG['newest_member'];
+                            $lang_quick_stats       = $this->LANG['quick_stats'];
+                            $lang_most_users_online = $this->LANG['most_users_online'];
+                            
+                            $lang_newest_member     = str_replace( '%%MEMBER%%', $this->BBS->get_member_link( $v['statistic_newest_member_id'] ), $lang_newest_member );
+                            $lang_quick_stats       = str_replace( '%%MEMBERS%%', number_format( $v['statistic_total_members'] ), $lang_quick_stats );
+                            $lang_quick_stats       = str_replace( '%%POSTS%%', number_format( $v['statistic_total_posts'] ), $lang_quick_stats );
+                            $lang_quick_stats       = str_replace( '%%TOPICS%%', number_format( $v['statistic_total_topics'] ), $lang_quick_stats );
+                            $lang_quick_stats       = str_replace( '%%REPLIES%%', number_format( $v['statistic_total_replies'] ), $lang_quick_stats );
+                            $lang_most_users_online = str_replace( '%%TOTAL%%', number_format( $v['statistic_online_record'] ), $lang_most_users_online );
+                            $this->BBS->T           = array( 'timestamp' => $this->BBS->parse_timestamp( $v['statistic_online_record_timestamp'], true ) );
+                            $lang_most_users_online = str_replace( '%%TIMESTAMP%%', $this->THEME->html_timestamp_text(), $lang_most_users_online );
+                            
+                            // Output the statistics.
+                            $this->BBS->T = array( 'newest_member' => $lang_newest_member,
+                                                   'quick_stats'   => $lang_quick_stats,
+                                                   'most_users'    => $lang_most_users_online );
+                                                   
+                            echo $this->THEME->html_bbic_statistics();
+                        }
+                     }
+                }
+                break;
+            }
+            
+            // Permission for Member Birthdays?
+            switch ( $this->BBS->check_feature_permissions( 'bbic_birthdays' ) )
+            {
+                case true:
+                // Find out who is celebrating a birthday.
+                $birthday_list   = '';
+                $total_birthdays = 0;
+                $x               = 0;
+                
+                $month = date( 'n', time() );
+                $day   = date( 'j', time() );
+                
+                // Get the member's birthday information from the database.
+                $r = $this->BBS->get_data( 'members', 'member_id' );
+                
+                if ( $r != false )
+                {
+                    foreach ( $r as $k => $v )
+                    {
+                        if ( ( $v['member_dob_month'] == $month ) AND ( $v['member_dob_day'] == $day ) )
+                        {
+                            // Get the member's current age.
+                            ( $v['member_show_age'] == 1 ) ? $age = ' (' . $this->BBS->calculate_age( $v['member_dob_month'], $v['member_dob_day'], $v['member_dob_year'] ) . ')' : $age = '';
+                            
+                            if ( $x == 0 ) { $sep = ''; $x++; } else { $sep = ', '; }
+                            
+                            $birthday_list .= $this->BBS->get_member_link( $v['member_id'], '', $sep ) . $age;
+                            
+                            $total_birthdays++;
+                        }
+                    }
+                }
+                
+                if ( $total_birthdays == 0 ) $birthday_list = $this->LANG['no_birthdays'];
+                
+                $lang_current_birthdays = $this->LANG['current_birthdays'];
+                
+                $lang_current_birthdays = str_replace( '%%TOTAL%%', number_format( $total_birthdays ), $lang_current_birthdays );
+                
+                $this->BBS->T = array( 'current_birthdays' => $lang_current_birthdays,
+                                       'birthday_list'     => $birthday_list );
+                                       
+                echo $this->THEME->html_bbic_birthdays();
+                break;
+            }
+            break;
+        }
+        
+        // Bottom footer.
+        $this->BBS->bottom_footer();
     }
 }
 

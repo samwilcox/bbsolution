@@ -148,6 +148,51 @@ return <<<EOF
 EOF;
 }
 
+public function html_bbic_start()
+{
+return <<<EOF
+      <div class="verticalSpacer"></div>
+EOF;
+}
+
+public function html_bbic_whos_online()
+{
+return <<<EOF
+      <div class="bbicTitle"><img src="{$this->BBS->imageset_url}/icons/bbic-online.png" width="22" height="22" alt="*" class="imgAlign"> {$this->LANG['whos_online_now']}</div>
+      <div class="bbicContent">{$this->BBS->T['currently_online']}<br>
+      {$this->BBS->T['online_list']}<br>
+      <br>
+      {$this->BBS->T['members_online']}<br>
+      {$this->BBS->T['group_legend']}</div>
+EOF;
+}
+
+public function html_timestamp_text()
+{
+return <<<EOF
+<span class="timestampTxt">{$this->BBS->T['timestamp']}</span>
+EOF;
+}
+
+public function html_bbic_statistics()
+{
+return <<<EOF
+      <div class="bbicTitle"><img src="{$this->BBS->imageset_url}/icons/bbic_stats.png" width="22" height="22" alt="*" class="imgAlign"> {$this->LANG['statistics']}</div>
+      <div class="bbicContent">{$this->BBS->T['newest_member']}<br>
+      {$this->BBS->T['quick_stats']}<br>
+      {$this->BBS->T['most_users']}</div>
+EOF;
+}
+
+public function html_bbic_birthdays()
+{
+return <<<EOF
+      <div class="bbicTitle"><img src="{$this->BBS->imageset_url}/icons/bbic_birthdays.png" width="22" height="22" alt="*" class="imgAlign"> {$this->LANG['member_birthdays']}</div>
+      <div class="bbicContent">{$this->BBS->T['current_birthdays']}<br>
+      {$this->BBS->T['birthday_list']}</div>
+EOF;
+}
+
 }
 
 ?>

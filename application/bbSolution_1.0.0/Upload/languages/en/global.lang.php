@@ -36,5 +36,18 @@ $LANG['last_visit'] = 'Your last visit was on %%TIMESTAMP%%';
 $LANG['resend_activation'] = 'Resend Activation Email';
 $LANG['member_greeting'] = '%%GREETING%% %%MEMBERNAME%%!';
 $LANG['view_your_profile'] = 'View your profile';
+$LANG['quick_theme_selector'] = 'Quick Theme Selector';
+$LANG['quick_lang_selector'] = 'Quick Language Selector';
+$LANG['all_times'] = 'All times are %%TIMEZONE%%';
+$LANG['view_leaders'] = 'View leaders';
+$LANG['go_to_top'] = 'Go to top';
+$LANG['page_processed'] = 'Page processed in %%SECONDS%% seconds';
+$LANG['total_queries'] = '%%TOTAL%% SQL queries';
+$LANG['gzip'] = 'GZIP %%SETTING%%';
+$LANG['enabled'] = 'enabled';
+$LANG['disabled'] = 'disabled';
+$LANG['powered_by'] = 'Powered by';
+$LANG['version'] = 'Version';
+$LANG['licensed_to'] = 'Licensed to: %%NAME%%';
 
 ?>

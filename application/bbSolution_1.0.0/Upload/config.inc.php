@@ -43,8 +43,8 @@ $CFG['cookie_domain'] = '';
 $CFG['theme_id'] = 1;
 $CFG['language_id'] = 1;
 $CFG['dt_timezone'] = 'America/Boise';
-$CFG['dt_time_format'] = '';
-$CFG['dt_date_format'] = '';
+$CFG['dt_time_format'] = 'g:i:s a';
+$CFG['dt_date_format'] = 'M j, Y';
 $CFG['dt_show_today'] = true;
 $CFG['member_photo_enable_resizing'] = true;
 $CFG['member_photo_thumb_max_width'] = 50;
@@ -57,5 +57,7 @@ $CFG['upload_dir'] = 'uploads';
 $CFG['upload_photo_dir'] = 'member_photos';
 $CFG['display_news'] = true;
 $CFG['per_page_posts'] = 15;
+$CFG['licensed_to'] = 'bbSolution';
+$CFG['licensed_to_display'] = true;
 
 ?>

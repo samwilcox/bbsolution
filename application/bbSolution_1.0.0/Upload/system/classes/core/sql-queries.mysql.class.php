@@ -296,6 +296,14 @@ cache_data = '{$this->BBS->TOSQL['to_cache']}'
 WHERE cache_title = '{$this->BBS->TOSQL['cache_title']}'
 EOF;
 }
+
+public function sql_select_sessions_online()
+{
+return <<<EOF
+SELECT * FROM {$this->BBS->db_prefix}sessions
+ORDER BY session_last_click DESC
+EOF;
+}
  
  }
 
