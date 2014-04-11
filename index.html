@@ -33,11 +33,17 @@ function toggleThis( eb,ei )
 	    <tr>
 	      <td class="topLogoBarLeft"><a href="?cls=index" title="bbSolution Development"><img src="application/bbSolution_1.0.0/Upload/public/imagesets/master/images/bb-logo.png" width="253" height="49" alt="bbSolution Development" class="imgNoBorder"></a></td>
 	      <td class="topLogoBarRight"><ul>
-	        <li>Good Evening <strong>Guest</strong>!</li>
+	        <li>Good Evening <a href="?cls=members&to_do=1" title="View your profile" style="color:#F00;"><strong>Sam Wilcox</strong></a>!</li>
 	        <li>|</li>
-	        <li><img src="application/bbSolution_1.0.0/Upload/public/imagesets/master/icons/login.png" width="16" height="16" alt="*" class="imgAlign"> <a href="?cls=authenticate" title="Log In">Log In</a></li>
-	        <li><img src="application/bbSolution_1.0.0/Upload/public/imagesets/master/icons/create-account.png" width="16" height="16" alt="*" class="imgAlign"> <a href="?cls=createaccount" title="Create Account">Create Account</a></li>
-          </ul></td>
+	        <li><img src="application/bbSolution_1.0.0/Upload/public/imagesets/master/icons/logout.png" width="16" height="16" alt="*" class="imgAlign"> <a href="?cls=authenticate&to_do=logout" title="Log Out" onClick="if(window.confirm('Are you sure you wish to logout?')) { location = '?cls=authenticate&to_do=logout'; } return false;">Log Out</a></li>
+	        <li><img src="application/bbSolution_1.0.0/Upload/public/imagesets/master/icons/usercp.png" width="16" height="16" alt="*" class="imgAlign"> <a href="?cls=usercp" title="My Control Panel">My Control Panel</a></li>
+	        <li><img src="application/bbSolution_1.0.0/Upload/public/imagesets/master/icons/messenger.png" width="16" height="16" alt="*" class="imgAlign"> <a href="?cls=messenger" title="Messenger">Messenger</a> (<strong>1</strong>)</li>
+            <br>
+            <ul>
+            <li>Your last visit was on <span class="timestampTxt">Date and Time</span></li>
+            <li class="sendActivationLink">[ <a href="?cls=createaccount&to_do=resend" title="Resend Activation Email">Resend Activation Email</a> ]</li>
+            </ul>
+	      </ul></td>
         </tr>
       </table>
 	</div>
@@ -61,7 +67,7 @@ function toggleThis( eb,ei )
         <table class="forumListingTable">
           <tr>
             <td class="forumListingIcon"><img src="application/bbSolution_1.0.0/Upload/public/imagesets/master/icons/status/forum/new-posts.png" width="32" height="32" alt="*" title="Forum contains new posts"></td>
-            <td class="forumListingForumInfo"><span class="forumTitleLinkTxt"><a href="?cls=forum&to_do=1" title="Forum Name Here">Forum Name Here</a></span><br>
+            <td class="forumListingForumInfo"><span class="forumTitleLinkTxt"><img src="application/bbSolution_1.0.0/Upload/public/imagesets/master/icons/create-account.png" width="16" height="16" alt="*" class="imgAlign"> <a href="?cls=forum&to_do=1" title="Forum Name Here">Forum Name Here</a></span><br>
             <span class="forumDescription">The forum description goes right here.</span><br>
             <span class="subForumTxt"><strong>Sub Forums:</strong> <a href="?cls=forum&to_do=1" title="Sub Forum Name">Sub Forum Name</a></span></td>
             <td class="forumListingStats"><strong>45,432</strong> Topics<br>
@@ -136,10 +142,6 @@ function toggleThis( eb,ei )
       </div>
     </div>
 </div>
-<p>&nbsp;</p>
-<p>&nbsp;</p>
-<p>&nbsp;</p>
-<p><img src="application/bbSolution_1.0.0/Upload/public/imagesets/master/images/no-photo.png" width="150" height="150" alt="*" class="userPhoto"></p>
 <p>&nbsp;</p>
 <p>&nbsp;</p>
 <p>&nbsp;</p>

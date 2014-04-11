@@ -60,6 +60,32 @@ a:hover
 	border-right:1px solid #FFF;
 }
 
+.selectedMenuItem a, .selectedMenuItem a:link, .selectedMenuItem a:active, .selectedMenuItem a:visited
+{
+	color:#FFF;
+	text-decoration:none;
+	padding-left:6px;
+	padding-right:6px;
+	padding-top:8px;
+	padding-bottom:8px;
+	background-color:#075AA7;
+	border-left:1px solid #FFF;
+	border-right:1px solid #FFF;
+}
+
+.selectedMenuItem a:hover
+{
+	color:#FFF;
+	text-decoration:none;
+	padding-left:6px;
+	padding-right:6px;
+	padding-top:8px;
+	padding-bottom:8px;
+	background-color:#036;
+	border-left:1px solid #FFF;
+	border-right:1px solid #FFF;
+}
+
 .navBar a, .navBar a:link, .navBar a:active, .navBar a:visited
 {
 	color:#000;
@@ -82,4 +108,9 @@ a:hover
 {
 	color:#FFF;
 	text-decoration:underline;
+}
+
+.sendActivationLink a, .sendActivationLink a:link, .sendActivationLink a:active, .sendActivationLink a:visited
+{
+	font-weight:normal;
 }

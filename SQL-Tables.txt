@@ -28,8 +28,14 @@ member_salt
 member_token
 member_display_name
 member_email_address
+member_last_visit
 member_primary_group_id
 member_secondary_group_ids
+member_display_photo 1 = on 0 = off
+member_linked_photo 1 = on 0 = off
+member_photo_url
+member_facebook_auth_oid
+member_facebook_photo
 
 - groups
 group_id
@@ -38,6 +44,7 @@ group_title
 group_about
 group_important
 group_color
+group_display
 
 - stored_cache
 cache_id
@@ -50,6 +57,20 @@ forum_title
 forum_lft
 forum_rgt
 forum_parent_id **new**
+forum_hidden
+forum_archived
+forum_show_subs
+forum_image_url
+forum_redirect
+forum_redirect_url
+forum_redirect_hits
+forum_total_topics
+forum_total_replies
+forum_description
+forum_last_post_timestamp
+forum_last_post_member_id
+forum_last_post_topic_id
+forum_last_post_post_id
 
 - installed_themes
 theme_id
@@ -84,5 +105,29 @@ read_last_read_timestamp
 - member_photos
 photo_id
 photo_member_id
-photo_display
 photo_filename
+
+- messenger_inbox
+inbox_id
+inbox_member_id
+inbox_read
+
+- topics
+topic_id
+topic_forum_id
+topic_title
+topic_news
+topic_timestamp
+topic_last_post_timstamp
+
+- posts
+post_id
+post_topic_id
+post_title
+
+- feature_permissions
+feature_id
+feature_title
+feature_enabled
+feature_allowed_users
+feature_allowed_groups

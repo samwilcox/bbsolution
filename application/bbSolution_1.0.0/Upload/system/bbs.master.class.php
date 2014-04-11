@@ -148,6 +148,12 @@ class BBSolutionMaster
      * @var String $db_prefix
      */
      public $db_prefix = '';
+     
+    /**
+     * CURL Header
+     * @var String
+     */
+     public $curl_header;
     
     public function hand_off()
     {
@@ -476,7 +482,12 @@ class BBSolutionMaster
                                  'installed_languages' => 'language_id',
                                  'statistics'          => 'statistic_id',
                                  'forums_read'         => 'read_id',
-                                 'groups'              => 'group_id' );
+                                 'groups'              => 'group_id',
+                                 'member_photos'       => 'photo_id',
+                                 'messenger_inbox'     => 'inbox_id',
+                                 'topics'              => 'topic_id',
+                                 'posts'               => 'post_id',
+                                 'feature_permissions' => 'feature_id' );
                                  
             // Determine which cache method we are using
             switch ( $this->CFG['cache_db_method'] )
@@ -1528,23 +1539,31 @@ class BBSolutionMaster
     }
     
     public function url_exist( $url )
-    {
+    {        
         // Use curl to see if a specified URL exists
         $res_url = curl_init();
         
-        curl_setopt( $res_url, CURLOPT_URL, $url );
-        curl_setopt( $res_url, CURLOPT_BINARYTRANSFER, 1 );
-        curl_setopt( $res_url, CURLOPT_HEADERFUNCTION, 'curlHeaderCallback' );
-        curl_setopt( $res_url, CURLOPT_FAILONERROR, 1 );
+        curl_setopt_array($res_url, array(
+            CURLOPT_URL            => $url,
+            CURLOPT_BINARYTRANSFER => true,
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_HEADER         => false,
+            CURLOPT_HEADERFUNCTION => array( $this, 'header_callback'),
+            CURLOPT_FAILONERROR    => true ) );
+            
         curl_exec( $res_url );
-        
-        $return_code = curl_getinfo( $res_url, CURLINFO_HTTP_CODE );
-        
-        // Close
+        $return_code = curl_getinfo( $res_url );
+      
         curl_close( $res_url );
         
         // Return the result, depending on...
-        if ( $return_code != 200 && $return_code != 302 && $return_code != 304 ) { return false; } else { return true; }
+        if ( $return_code['http_code'] > 0 ) { return true; } else { return false; }
+    }
+    
+    public function header_callback( $res_url, $header_line )
+    {
+        $this->curl_header .= $header_line;
+        return strlen( $header_line );
     }
     
     public function check_feature_permissions( $feature )
@@ -1678,6 +1697,9 @@ class BBSolutionMaster
                 {
                     $found               = true;
                     $member_display_name = $v['member_display_name'];
+                    $display_photo       = $v['member_display_photo'];
+                    $linked_photo        = $v['member_linked_photo'];
+                    $photo_url           = $v['member_photo_url'];
                 }
             }
         }
@@ -1774,68 +1796,93 @@ class BBSolutionMaster
             switch ( $this->CFG['member_photo_enable_resizing'] )
             {
                 case true:
-                // Grab the member's photo from the database
-                $display_photo = false;
-                
-                $r = $this->get_data( 'member_photos', 'photo_id' );
-                
-                if ( $r != false )
+                switch ( $linked_photo )
                 {
-                    foreach ( $r as $k => $v )
+                    case 1:
+                    // Looks like the member is using a linked photo
+                    // Make sure it exists and doesn't exceed dimensions
+                    if ( $this->url_exist( $photo_url ) )
                     {
-                        if ( $v['photo_member_id'] == $member_id )
+                        // Get the dimensions of the photo
+                        list( $photo_width, $photo_height ) = getimagesize( $photo_url );
+                        
+                        // Compare the size, see if we need to adjust
+                        if ( ( $photo_width > $photo_max_width ) OR ( $photo_height > $photo_max_height ) )
                         {
-                            // Does this member want to display the photo?
-                            switch ( $v['photo_display'] )
+                            // Resize the photo
+                            $photo_height = ( $photo_height / $photo_width ) * $photo_max_width;
+                            $photo_width  = $photo_max_width;
+                        }
+                        
+                        // Get the photo HTML
+                        $this->T = array( 'link_start'   => $member_link_start,
+                                          'link_end'     => $member_link_end,
+                                          'width'        => $photo_width,
+                                          'height'       => $photo_height,
+                                          'member_photo' => $photo_url );
+                                          
+                        $member_photo = $this->THEME->html_member_photo();
+                    }
+                    else
+                    {
+                        // No photo
+                        $this->T = array( 'link_start' => $member_link_start,
+                                          'link_end'   => $member_link_end );
+                                          
+                        $member_photo = $this->THEME->html_no_photo();
+                    }
+                    break;
+                    
+                    case 0:
+                    // Looks like we are using an uploaded photo
+                    // Get the photo details
+                    $r = $this->get_data( 'member_photos', 'photo_id' );
+                    
+                    if ( $r != false )
+                    {
+                        foreach ( $r as $k => $v )
+                        {
+                            if ( $v['photo_member_id'] == $member_id )
                             {
-                                case 1:
-                                $display_photo  = true;
                                 $photo_filename = $v['photo_filename'];
-                                break;
-                                
-                                case 0:
-                                $display_photo = false;
-                                break;
                             }
                         }
                     }
-                }
-                
-                // Does the user want to display their photo?
-                switch ( $display_photo )
-                {
-                    case true:
-                    // We are going to display the photo, but we need to do a few
-                    // things first
-                    $photo = $photo_dir . $photo;
                     
-                    // Get the image sizes
-                    list( $photo_width, $photo_height ) = getimagesize( $photo );
+                    // Put the full path together
+                    $photo = $photo_dir . $photo_filename;
                     
-                    // Check to make sure that the photo doesnt exceed the max dimensions
-                    if ( ( $photo_width > $photo_max_width ) OR ( $photo_height > $photo_max_height ) )
+                    // Make sure the photo exists
+                    if ( file_exists( $photo ) )
                     {
-                        // We need to resize the photo
-                        $photo_height = ( $photo_height / $photo_width ) * $photo_max_width;
-                        $photo_width  = $photo_max_width;
+                        // Get the dimensions
+                        list( $photo_width, $photo_height ) = getimagesize( $photo );
+                        
+                        // Compare and make sure the dimensions dont exceed the set
+                        // application dimensions
+                        if ( ( $photo_width > $photo_max_width ) OR ( $photo_height > $photo_max_height ) )
+                        {
+                            // Resize the photo
+                            $photo_height = ( $photo_height / $photo_width ) * $photo_max_width;
+                            $photo_width  = $photo_max_width;
+                        }
+                        
+                        $this->T = array( 'link_start'   => $member_link_start,
+                                          'link_end'     => $member_link_end,
+                                          'width'        => $photo_width,
+                                          'height'       => $photo_height,
+                                          'member_photo' => $photo );
+                                          
+                        $member_photo = $this->THEME->html_member_photo();
                     }
-                    
-                    // Return the photo
-                    $this->T = array( 'link_start'   => $member_link_start,
-                                      'link_end'     => $member_link_end,
-                                      'width'        => $photo_width,
-                                      'height'       => $photo_height,
-                                      'member_photo' => $photo );
-                                      
-                    return $this->THEME->html_member_photo();
-                    break;
-                    
-                    case false:
-                    // Dont display the photo
-                    $this->T = array( 'link_start' => $member_link_start,
-                                      'link_end'   => $member_link_end );
-                                  
-                    return $this->THEME->html_no_photo();
+                    else
+                    {
+                        // File does not exist, return no photo
+                        $this->T = array( 'link_start' => $member_link_start,
+                                          'link_end'   => $member_link_end );
+                                          
+                        $member_photo = $this->THEME->html_no_photo();
+                    }                   
                     break;
                 }              
                 break;
@@ -1843,15 +1890,369 @@ class BBSolutionMaster
                 case false:
                 // Image resizing is disabled, just return the image with its
                 // original dimensions
-                
+                // Member using a linked photo?
+                switch ( $linked_photo )
+                {
+                    case 1:
+                    // Make sure the photo exists
+                    if ( $this->url_exist( $photo_url ) )
+                    {
+                        // Get the original size dimensions
+                        list( $photo_width, $photo_height ) = getimagesize( $photo_url );
+                        
+                        // Get the photo HTML
+                        $this->T = array( 'link_start'   => $member_link_start,
+                                          'link_end'     => $member_link_end,
+                                          'width'        => $photo_width,
+                                          'height'       => $photo_height,
+                                          'member_photo' => $photo_url );
+                                          
+                        $member_photo = $this->THEME->html_member_photo();
+                    }
+                    else
+                    {
+                        // No photo
+                        $this->T = array( 'link_start' => $member_link_start,
+                                          'link_end'   => $member_link_end );
+                                          
+                        $member_photo = $this->THEME->html_no_photo();
+                    }
+                    break;
+                    
+                    case 0:
+                    // Member is using an uploaded photo
+                    // Get the phot information
+                    $r = $this->get_data( 'member_photos', 'photo_id' );
+                    
+                    if ( $r != false )
+                    {
+                        foreach ( $r as $k => $v )
+                        {
+                            if ( $v['photo_member_id'] == $member_id )
+                            {
+                                $photo_filename = $v['photo_filename'];
+                            }
+                        }
+                    }
+                    
+                    // Put the full path together
+                    $photo = $photo_dir . $photo_filename;
+                    
+                    // Does the photo exist?
+                    if ( file_exists( $photo ) )
+                    {
+                        // Get the original photo dimensions
+                        list( $photo_width, $photo_height ) = getimagesize( $photo );
+                        
+                        $this->T = array( 'link_start'   => $member_link_start,
+                                          'link_end'     => $member_link_end,
+                                          'width'        => $photo_width,
+                                          'height'       => $photo_height,
+                                          'member_photo' => $photo );
+                                          
+                        $member_photo = $this->THEME->html_member_photo();
+                    }
+                    else
+                    {
+                        // File doesnt exist, use no photo
+                        // No photo
+                        $this->T = array( 'link_start' => $member_link_start,
+                                          'link_end'   => $member_link_end );
+                                          
+                        $member_photo = $this->THEME->html_no_photo();
+                    }
+                    break;
+                }
                 break;
             }
             break;
             
             case 'thumb':
-            
+            switch ( $linked_photo )
+            {
+                case 1:
+                // Looks like the member is using a linked photo
+                // Make sure it exists and doesn't exceed dimensions
+                if ( $this->url_exist( $photo_url ) )
+                {
+                    // Get the dimensions of the photo
+                    list( $photo_width, $photo_height ) = getimagesize( $photo_url );
+                        
+                    // Compare the size, see if we need to adjust
+                    if ( ( $photo_width > $thumb_max_width ) OR ( $photo_height > $thumb_max_height ) )
+                    {
+                        // Resize the photo
+                        $photo_height = ( $photo_height / $photo_width ) * $thumb_max_width;
+                        $photo_width  = $thumb_max_width;
+                    }
+                        
+                    // Get the photo HTML
+                    $this->T = array( 'link_start'   => $member_link_start,
+                                      'link_end'     => $member_link_end,
+                                      'width'        => $photo_width,
+                                      'height'       => $photo_height,
+                                      'member_photo' => $photo_url );
+                                          
+                    $member_photo = $this->THEME->html_member_photo();
+                }
+                else
+                {
+                    // No photo
+                    $this->T = array( 'link_start' => $member_link_start,
+                                      'link_end'   => $member_link_end );
+                                          
+                    $member_photo = $this->THEME->html_no_photo_thumb();
+                }
+                break;
+                    
+                case 0:
+                // Looks like we are using an uploaded photo
+                // Get the photo details
+                $r = $this->get_data( 'member_photos', 'photo_id' );
+                    
+                if ( $r != false )
+                {
+                    foreach ( $r as $k => $v )
+                    {
+                        if ( $v['photo_member_id'] == $member_id )
+                        {
+                        $photo_filename = $v['photo_filename'];
+                        }
+                    }
+                }
+                    
+                // Put the full path together
+                $photo = $photo_dir . $photo_filename;
+                    
+                // Make sure the photo exists
+                if ( $this->url_exist( $photo ) )
+                {
+                    // Get the dimensions
+                    list( $photo_width, $photo_height ) = getimagesize( $photo );
+                        
+                    // Compare and make sure the dimensions dont exceed the set
+                    // application dimensions
+                    if ( ( $photo_width > $thumb_max_width ) OR ( $photo_height > $thumb_max_height ) )
+                    {
+                        // Resize the photo
+                        $photo_height = ( $photo_height / $photo_width ) * $thumb_max_width;
+                        $photo_width  = $thumb_max_width;
+                    }
+                        
+                    $this->T = array( 'link_start'   => $member_link_start,
+                                      'link_end'     => $member_link_end,
+                                      'width'        => $photo_width,
+                                      'height'       => $photo_height,
+                                      'member_photo' => $photo );
+                                          
+                    $member_photo = $this->THEME->html_member_photo();
+                }
+                else
+                {
+                    // File does not exist, return no photo
+                    $this->T = array( 'link_start' => $member_link_start,
+                                      'link_end'   => $member_link_end );
+                                          
+                    $member_photo = $this->THEME->html_no_photo_thumb();
+                }
+            }                   
             break;
         }
+        
+        // Does the member want to display their photo?
+        switch ( $display_photo )
+        {
+            case 1:
+            // They want to display it, return the HTML
+            return $member_photo;
+            break;
+            
+            case 0:
+            // Looks like they dont want to display it, return no photo
+            $this->T = array( 'link_start' => $member_link_start,
+                              'link_end'   => $member_link_end );
+                              
+            return $this->THEME->html_no_photo_thumb();
+            break;
+        }
+    }
+    
+    public function get_time_greeting()
+    {
+        // Get the current hour to determine what part of the day
+        // it is right now
+        $hour = date( 'G' ); // 24 hour format, so we dont need to use AM/PM stuff
+        
+        // Now figure out the greeting to return
+        $morning   = array( 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11 );
+        $afternoon = array( 12, 13, 14, 15, 16, 17, 18 );
+        $evening   = array( 19, 20, 21, 22, 23 );
+        
+        $greeting = '';
+        
+        // Go through the times, until we figure out what the greeting is
+        foreach ( $morning as $time )
+        {
+            if ( $time == $hour )
+            {
+                $greeting = $this->LANG['good_morning'];
+                break;
+            }
+        }
+        
+        if ( $greeting == '' )
+        {
+            foreach ( $afternoon as $time )
+            {
+                if ( $time == $hour )
+                {
+                    $greeting = $this->LANG['good_afternoon'];
+                    break;
+                }
+            }
+        }
+        
+        if ( $greeting == '' )
+        {
+            foreach ( $evening as $time )
+            {
+                if ( $time == $hour )
+                {
+                    $greeting = $this->LANG['good_evening'];
+                    break;
+                }
+            }
+        }
+        
+        // Return the greeting
+        return $greeting;
+    }
+    
+    public function top_header( $title = '', $nav = '', $tab = '' )
+    {
+        // Create the tab legend
+        $tabs_start = array( 'forums'     => '',
+                             'members'    => '',
+                             'search'     => '',
+                             'whosonline' => '',
+                             'help'       => '' );
+                                 
+        $tabs_end   = array( 'forums'     => '',
+                             'members'    => '',
+                             'search'     => '',
+                             'whosonline' => '',
+                             'help'       => '' );
+        
+        // First of all, is a tab selected?
+        if ( $tab != '' )
+        {                                 
+            // Go through and select the correct tab
+            foreach ( $tabs_start as $k => $v )
+            {
+                if ( $k == strtolower( $tab ) )
+                {
+                    $tabs_start[$k] = $this->THEME->html_tab_selected_start();
+                }
+            }
+            
+            foreach ( $tabs_end as $k => $v )
+            {
+                if ( $k == strtolower( $tab ) )
+                {
+                    $tabs_end[$k] = $this->THEME->html_tab_select_end();
+                }
+            }
+        }
+        
+        // Was a title specified?
+        ( $title != '' ) ? $title = $title . ' - ' : $title = '';
+        
+        // Get the greeting
+        $greeting = $this->get_time_greeting();
+        
+        // Is a member logged in?
+        switch ( $this->MEMBER['status'] )
+        {
+            case true:
+            // Member is logged in. Just need to do a few things first
+            // Get the member's last visit timestamp
+            
+            $this->T = array( 'timestamp' => $this->parse_timestamp( $this->MEMBER['last_visit'] ) );
+            
+            $last_visit = $this->THEME->html_last_visit_timestamp();
+            
+            // Does this member have any unread messenger messages?
+            $unread = 0;
+            
+            $r = $this->get_data( 'messenger_inbox', 'inbox_id' );
+            
+            if ( $r != false )
+            {
+                foreach ( $r as $k => $v )
+                {
+                    if ( ( $v['inbox_member_id'] == $this->MEMBER['id'] ) AND ( $v['inbox_read'] == 0 ) )
+                    {
+                        $unread++;
+                    }
+                }
+            }
+            
+            // Is this member still awaiting activation?
+            // If so, display the "Resend Activation Email" link
+            if ( $this->MEMBER['primary_group_id'] == 3 )
+            {
+                $resend_email_link = $this->THEME->html_resend_activation_email_link();
+            }
+            else
+            {
+                $resend_email_link = '';
+            }
+            
+            // Replace a few markers in the language file
+            $lang_greeting  = $this->LANG['member_greeting'];
+            $lang_lastvisit = $this->LANG['last_visit'];
+            $lang_here      = $this->LANG['here'];
+            $lang_greeting  = str_replace( '%%GREETING%%', $greeting, $lang_greeting );
+            $lang_greeting  = str_replace( '%%MEMBERNAME%%', $this->get_member_link( $this->MEMBER['id'], $this->LANG['view_your_profile'] ), $lang_greeting );
+            $lang_lastvisit = str_replace( '%%TIMESTAMP%%', $last_visit, $lang_lastvisit );
+            $lang_here      = str_replace( '%%NAVTREE%%', $nav, $lang_here );
+            
+            // Output the member's header
+            $this->T = array( 'title'       => $title,
+                              'nav'         => $lang_here,
+                              'tstart'      => $tabs_start,
+                              'tend'        => $tabs_end,
+                              'index_url'   => $this->seo_url( 'index' ),
+                              'members_url' => $this->seo_url( 'members', 'list' ),
+                              'online_url'  => $this->seo_url( 'online' ),
+                              'greeting'    => $lang_greeting,
+                              'last_visit'  => $lang_lastvisit,
+                              'resend'      => $resend_email_link,
+                              'unread'      => number_format( $unread ) );
+                              
+            echo $this->THEME->html_top_header_member();
+            break;
+            
+            case false:
+            // Member isn't logged in, user is a Guest
+            $lang_greeting = $this->LANG['guest_greeting'];
+            $lang_greeting = str_replace( '%%GREETING%%', $greeting, $lang_greeting );
+            $lang_here     = $this->LANG['here'];
+            $lang_here     = str_replace( '%%NAVTREE%%', $nav, $lang_here );
+            
+            // Output the theme header
+            $this->T = array( 'title'       => $title,
+                              'nav'         => $lang_here,
+                              'tstart'      => $tabs_start,
+                              'tend'        => $tabs_end,
+                              'index_url'   => $this->seo_url( 'index' ),
+                              'members_url' => $this->seo_url( 'members', 'list' ),
+                              'online_url'  => $this->seo_url( 'online'),
+                              'greeting'    => $lang_greeting );
+                              
+            echo $this->THEME->html_top_header_guest();
+            break;
+        }        
     }
 }
 
