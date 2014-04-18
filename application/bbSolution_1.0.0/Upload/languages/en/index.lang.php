@@ -8,7 +8,7 @@
 // file: index.lang.php
 
 $LANG['latest_news'] = '<strong>Latest News:</strong> %%NEWSLINK%%';
-$LANG['redirects'] = '<strong>%%TOTAL</strong> Redirects';
+$LANG['redirects'] = '<strong>%%TOTAL%%</strong> Redirects';
 $LANG['redirect_info'] = 'This forum will redirect you';
 $LANG['archived'] = 'This forum is archived, which means read only';
 $LANG['new_posts'] = 'This forum contains new posts';

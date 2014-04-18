@@ -31,6 +31,9 @@ member_email_address
 member_last_visit
 member_primary_group_id
 member_secondary_group_ids
+member_login_attempts
+member_login_attempts_locked
+member_login_attempts_timestamp
 member_display_photo 1 = on 0 = off
 member_linked_photo 1 = on 0 = off
 member_photo_url
@@ -140,3 +143,10 @@ feature_title
 feature_enabled
 feature_allowed_users
 feature_allowed_groups
+
+- application_settings
+setting_id
+setting_name
+setting_value
+setting_default_value
+setting_last_changed

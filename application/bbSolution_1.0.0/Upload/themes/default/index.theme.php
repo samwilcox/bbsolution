@@ -29,6 +29,7 @@ EOF;
 public function html_small_seperator()
 {
 return <<<EOF
+      </div>
       <div class="verticalSpacer"></div>
 EOF;
 }

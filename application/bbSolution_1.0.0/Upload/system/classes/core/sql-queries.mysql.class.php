@@ -304,6 +304,75 @@ SELECT * FROM {$this->BBS->db_prefix}sessions
 ORDER BY session_last_click DESC
 EOF;
 }
+
+public function sql_update_members_lockout()
+{
+return <<<EOF
+UPDATE {$this->BBS->db_prefix}members
+SET
+member_login_attempts_locked = '1',
+member_login_attempts_timestamp = '{$this->BBS->TOSQL['locked_duration']}' 
+WHERE member_id = '{$this->BBS->TOSQL['member_id']}'
+EOF;
+}
+
+public function sql_update_members_lockout_attempts()
+{
+return <<<EOF
+UPDATE {$this->BBS->db_prefix}members
+SET 
+member_login_attempts = '{$this->BBS->TOSQL['login_attempts']}' 
+WHERE member_id = '{$this->BBS->TOSQL['member_id']}'
+EOF;
+}
+
+public function sql_update_members_clear_lockout()
+{
+return <<<EOF
+UPDATE {$this->BBS->db_prefix}members 
+SET 
+member_login_attempts = '0', 
+member_login_attempts_locked = '0', 
+member_login_attempts_timestamp = '0' 
+WHERE member_id = '{$this->BBS->TOSQL['member_id']}'
+EOF;
+}
+
+public function sql_update_members_clear_login_attempts()
+{
+return <<<EOF
+UPDATE {$this->BBS->db_prefix}members 
+SET 
+member_login_attempts = '0' 
+WHERE member_id = '{$this->BBS->TOSQL['member_id']}'
+EOF;
+}
+
+public function sql_update_members_login_token()
+{
+return <<<EOF
+UPDATE {$this->BBS->db_prefix}members
+SET 
+member_token = '{$this->BBS->TOSQL['token']}',
+member_last_visit = '{$this->BBS->TOSQL['time']}'
+WHERE member_id = '{$this->BBS->TOSQL['member_id']}'
+EOF;
+}
+
+public function sql_update_sessions_login()
+{
+return <<<EOF
+UPDATE {$this->BBS->db_prefix}sessions 
+SET 
+session_member_id = '{$this->BBS->TOSQL['member_id']}',
+session_member_username = '{$this->BBS->TOSQL['member_username']}',
+session_expires = '{$this->BBS->TOSQL['expires']}',
+session_last_click = '{$this->BBS->TOSQL['time']}',
+session_location = '{$this->BBS->AGENT['location']}',
+session_anonymous = '{$this->BBS->TOSQL['anonymous']}' 
+WHERE session_id = '{$this->BBS->SESSION['id']}'
+EOF;
+}
  
  }
 

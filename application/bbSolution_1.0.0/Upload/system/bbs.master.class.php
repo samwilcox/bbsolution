@@ -154,6 +154,18 @@ class BBSolutionMaster
      * @var String
      */
      public $curl_header;
+     
+    /**
+     * Facebook Config
+     * @var array $FB
+     */
+     public $FB = array();
+     
+    /**
+     * Twitter Config
+     * @var array $TW
+     */
+     public $TW = array();
     
     public function hand_off()
     {
@@ -193,6 +205,12 @@ class BBSolutionMaster
         // Since the database is up and going now, initialize the cache
         // (if turned on)
         $this->initialize_database_cache();
+        
+        // Initialize all our application settings
+        $this->initialize_app_settings();
+        
+        // Initialize all our API's.
+        $this->initialize_api_classes();
         
         // Setup a few urls
         $this->setup_urls();
@@ -472,6 +490,28 @@ class BBSolutionMaster
         $this->SESSIONS->BBS =& $this;
     }
     
+    public function initialize_api_classes()
+    {
+        // Do we need to create a Facebook API object?
+        switch ( $this->check_feature_permissions( 'facebook_api' ) )
+        {
+            case true:
+            // Only do so if we have an app and secret ID configured.
+            if ( ( $this->CFG['api_facebook_app_id'] != '' ) AND ( $this->CFG['api_facebook_secret_key'] != '' ) )
+            {
+                require_once( ROOT_PATH . 'system/api/facebook/facebook.' . $this->php_ext );
+                
+                $this->FB = array( 'appId'              => $this->CFG['api_facebook_app_id'],
+                                   'secret'             => $this->CFG['api_facebook_secret_key'],
+                                   'fileUpload'         => false,
+                                   'allowSignedRequest' => false );
+                                   
+                $this->FACEBOOK = new Facebook( $this->FB );
+            }
+            break;
+        }
+    }
+    
     public function initialize_database_cache()
     {
         // Is database caching enabled?
@@ -490,7 +530,8 @@ class BBSolutionMaster
                                  'messenger_inbox'     => 'inbox_id',
                                  'topics'              => 'topic_id',
                                  'posts'               => 'post_id',
-                                 'feature_permissions' => 'feature_id' );
+                                 'feature_permissions' => 'feature_id',
+                                 'settings'            => 'setting_id' );
                                  
             // Determine which cache method we are using
             switch ( $this->CFG['cache_db_method'] )
@@ -815,7 +856,7 @@ class BBSolutionMaster
                 $to_cache = serialize( $records );
                         
                 // Write the data to file
-                if ( $fh = @fopen( $cache_dir . $k . '.cache.' . $this->php_ext, 'w' ) )
+                if ( $fh = @fopen( $cache_dir . $table . '.cache.' . $this->php_ext, 'w' ) )
                 {
                     @fwrite( $fh, $to_cache );
                     @fclose( $fh );
@@ -915,6 +956,31 @@ class BBSolutionMaster
         }
         
         $this->script_url = $this->base_url . '/' . $this->CFG['application_script_filename'];
+    }
+    
+    public function initialize_app_settings()
+    {
+        // Get the settings from the database.
+        $r = $this->get_data( 'settings', 'setting_id' );
+        
+        if ( $r != false )
+        {
+            foreach ( $r as $k => $v )
+            {
+                if ( $v['setting_value'] == 'true' )
+                {
+                    $this->CFG[$v['setting_name']] = true;
+                }
+                else if ( $v['setting_value'] == 'false' )
+                {
+                    $this->CFG[$v['setting_name']] = false;
+                }
+                else
+                {
+                    $this->CFG[$v['setting_name']] = $v['setting_value'];
+                }
+            }
+        }
     }
     
     public function seo_url( $a = '', $b ='', $c = '' )
@@ -1280,10 +1346,10 @@ class BBSolutionMaster
     public function generate_form_token()
     {
         $chars = substr( str_shuffle( "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZacdefghijkmopqrstuvwxy" ), 0, 32 );
-        $chars = sha1( md5( $chars ) );
+        $chars = sha1( md5( $chars ) );      
         
         // Return the token
-        return md5( $chars . $md5( $this->AGENT['agent'] ) );
+        return md5( $chars . md5( $this->AGENT['agent'] ) );
     }
     
     public function generate_login_token( $username )
@@ -1293,6 +1359,70 @@ class BBSolutionMaster
         
         // Return the token
         return md5( $chars . md5( $username ) );
+    }
+    
+    public function get_form_token()
+    {
+        // First of all, is form tokens enabled?
+        switch ( $this->CFG['form_token'] )
+        {
+            case true:
+            // Get token, set the session var, and return the field.
+            $token                 = $this->generate_form_token();            
+            $_SESSION['bbs_token'] = $this->generate_form_token();
+            
+            $this->T = array( 'token' => $token );
+            
+            return $this->THEME->html_form_token_field();
+            break;
+            
+            case false:
+            return '';
+            break;
+        }
+    }
+    
+    public function validate_form_token( $return = false )
+    {
+        // Is form tokens enabled?
+        switch ( $this->CFG['form_token'] )
+        {
+            case true:
+            // Compare form input token field against the session variable.
+            if ( $this->INC['token'] != $_SESSION['bbs_token'] )
+            {
+                // Return or not return?
+                switch ( $return )
+                {
+                    case true:
+                    return false;
+                    break;
+                    
+                    case false:
+                    // Board error here!!!
+                    break;
+                }
+            }
+            else
+            {
+                switch ( $return )
+                {
+                    case true:
+                    return true;
+                    break;
+                }
+            }
+            break;
+            
+            case false:
+            switch ( $return )
+            {
+                case true:
+                return true;
+                break;
+            }
+            break;
+        }
     }
     
     public function generate_pagination( $pre_url, $items, $perpage, $page )
@@ -2173,6 +2303,20 @@ class BBSolutionMaster
         // Get the greeting
         $greeting = $this->get_time_greeting();
         
+        // Are we using Facebook Connect?
+        switch ( $this->check_feature_permissions( 'facebook_api' ) )
+        {
+            case true:
+            $facebook_js           = $this->THEME->html_facebook_connect_js();
+            $facebook_login_button = $this->THEME->html_facebook_login_button();
+            break;
+            
+            case false:
+            $facebook_js           = '';
+            $facebook_login_button = '';
+            break;
+        }
+        
         // Is a member logged in?
         switch ( $this->MEMBER['status'] )
         {
@@ -2231,7 +2375,9 @@ class BBSolutionMaster
                               'greeting'    => $lang_greeting,
                               'last_visit'  => $lang_lastvisit,
                               'resend'      => $resend_email_link,
-                              'unread'      => number_format( $unread ) );
+                              'unread'      => number_format( $unread ),
+                              'fb_js'       => $facebook_js,
+                              'fb_lb'       => $facebook_login_button );
                               
             echo $this->THEME->html_top_header_member();
             break;
@@ -2251,7 +2397,9 @@ class BBSolutionMaster
                               'index_url'   => $this->seo_url( 'index' ),
                               'members_url' => $this->seo_url( 'members', 'list' ),
                               'online_url'  => $this->seo_url( 'online'),
-                              'greeting'    => $lang_greeting );
+                              'greeting'    => $lang_greeting,
+                              'fb_js'       => $facebook_js,
+                              'fb_lb'       => $facebook_login_button );
                               
             echo $this->THEME->html_top_header_guest();
             break;

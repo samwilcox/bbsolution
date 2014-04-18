@@ -49,5 +49,7 @@ $LANG['disabled'] = 'disabled';
 $LANG['powered_by'] = 'Powered by';
 $LANG['version'] = 'Version';
 $LANG['licensed_to'] = 'Licensed to: %%NAME%%';
+$LANG['mark_all'] = 'Mark all read';
+$LANG['mark_all_info'] = 'Mark the entire bulletin board as read';
 
 ?>

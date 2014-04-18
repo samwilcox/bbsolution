@@ -128,6 +128,7 @@ function toggleThis( eb,ei )
 </head>
 
 <body>
+{$this->BBS->T['fb_js']}
 <div class="topWrapper">
 	<div class="topLogoBar">
 	  <table class="topLogoBarTable" cellspacing="0" cellpadding="0">
@@ -137,7 +138,7 @@ function toggleThis( eb,ei )
 	        <li>{$this->BBS->T['greeting']}</li>
 	        <li>|</li>
 	        <li><img src="{$this->BBS->imageset_url}/icons/login.png" width="16" height="16" alt="*" class="imgAlign"> <a href="{$this->BBS->script_url}?cls=authenticate" title="{$this->BBS->LANG['login']}">{$this->BBS->LANG['login']}</a></li>
-	        <li><img src="{$this->BBS->imageset_url}/icons/create-account.png" width="16" height="16" alt="*" class="imgAlign"> <a href="{$this->BBS->script_url}?cls=createaccount" title="{$this->BBS->LANG['create_account']}">{$this->BBS->LANG['create_account']}</a></li>
+	        <li><img src="{$this->BBS->imageset_url}/icons/create-account.png" width="16" height="16" alt="*" class="imgAlign"> <a href="{$this->BBS->script_url}?cls=createaccount" title="{$this->BBS->LANG['create_account']}">{$this->BBS->LANG['create_account']}</a></li>{$this->BBS->T['fb_lb']}
           </ul></td>
         </tr>
       </table>
@@ -200,6 +201,7 @@ function toggleThis( eb,ei )
 </head>
 
 <body>
+{$this->BBS->T['fb_js']}
 <div class="topWrapper">
 	<div class="topLogoBar">
 	  <table class="topLogoBarTable" cellspacing="0" cellpadding="0">
@@ -267,7 +269,7 @@ return <<<EOF
       	  <form name="form1" method="post" action="{$this->BBS->script_url}">
       	    <select name="theme" id="theme">
               <optgroup label="{$this->LANG['quick_theme_selector']}">
-      	      {$this->BBS->T['theem_options']}
+      	      {$this->BBS->T['theme_options']}
               </optgroup>
    	        </select>
    	        <select name="lang" id="lang">
@@ -281,6 +283,7 @@ return <<<EOF
           <ul>
             <li class="allTimesBottomBar">{$this->BBS->T['all_times']}</li>
             <li><a href="{$this->BBS->script_url}?cls=groups&to_do=leaders" title="{$this->LANG['view_leaders']}">{$this->LANG['view_leaders']}</a></li>
+            <li><a href="{$this->BBS->script_url}?cls=index&amp;to_do=markall" title="{$this->LANG['mark_all_info']}">{$this->LANG['mark_all']}</a></li><strong></strong>
             <li><a href="#top" title="{$this->LANG['go_to_top']}">{$this->LANG['go_to_top']}</a></li>
           </ul>
         </div>
@@ -297,6 +300,62 @@ return <<<EOF
 </div>
 </body>
 </html>
+EOF;
+}
+
+public function html_facebook_connect_js()
+{
+return <<<EOF
+<div id="fb-root"></div>
+<script>
+  window.fbAsyncInit = function() {
+  FB.init({
+    appId      : '{$this->BBS->CFG['api_facebook_app_id']}',
+    status     : true,
+    cookie     : true,
+    xfbml      : true
+  });
+
+  FB.Event.subscribe('auth.authResponseChange', function(response) {
+    if (response.status === 'connected') {
+      testAPI();
+    } else if (response.status === 'not_authorized') {
+      FB.login();
+    } else {
+      FB.login();
+    }
+  });
+  };
+  
+  (function(d){
+   var js, id = 'facebook-jssdk', ref = d.getElementsByTagName('script')[0];
+   if (d.getElementById(id)) {return;}
+   js = d.createElement('script'); js.id = id; js.async = true;
+   js.src = "//connect.facebook.net/en_US/all.js";
+   ref.parentNode.insertBefore(js, ref);
+  }(document));
+
+  function testAPI() {
+    console.log('Welcome!  Fetching your information.... ');
+    FB.api('/me', function(response) {
+      console.log('Good to see you, ' + response.name + '.');
+    });
+  }
+</script>
+EOF;
+}
+
+public function html_facebook_login_button()
+{
+return <<<EOF
+<li><fb:login-button show-faces="false" auto-logout-link="true" size="small" max-rows="1" scope="email,user_birthday">{$this->BBS->T['button_text']}</fb:login-button></li>
+EOF;
+}
+
+public function html_form_token_field()
+{
+return <<<EOF
+<input type="hidden" name="token" value="{$this->BBS->T['token']}">
 EOF;
 }
 

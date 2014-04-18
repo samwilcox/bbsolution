@@ -114,3 +114,15 @@ a:hover
 {
 	font-weight:normal;
 }
+
+.loginInfoTitle a, .loginInfoTitle a:link, .loginInfoTitle a:active, .loginInfoTitle a:visited
+{
+	color:#036;
+	text-decoration:none;
+}
+
+.loginInfoTitle a:hover
+{
+	color:#036;
+	text-decoration:underline;
+}

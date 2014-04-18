@@ -23,3 +23,32 @@ input, select, textarea, upload
 	border:1px solid #333;
 	padding:2px;
 }
+
+input:hover, select:hover, textarea:hover, upload:hover
+{
+	border:1px solid #F60;
+}
+
+input:focus, select:focus, textarea:focus, upload:focus
+{
+	border:1px solid #F60;
+}
+
+input[type=submit]
+{
+	font-weight:bold;
+	background-color:#F3F3F3;
+	cursor:pointer;
+	padding:4px;
+	behavior:url(border-radius.htc);
+	-moz-border-radius:5px;
+	-webkit-border-radius:5px;
+	-khtml-border-radius:5px;
+	border-radius:5px;
+}
+
+input[type=submit]:hover
+{
+	border:1px solid #F60;
+	color:#F60;
+}

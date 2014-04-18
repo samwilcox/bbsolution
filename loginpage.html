@@ -1,0 +1,132 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>bbSolution Development</title>
+<link href="application/bbSolution_1.0.0/Upload/themes/default/css/index.css" rel="stylesheet" type="text/css" media="screen">
+
+<script language="javascript" type="text/javascript">
+function toggleThis( eb,ei )
+{
+	var elementBody = document.getElementById( eb );
+	var elementImg  = document.getElementById( ei );
+	
+	if ( elementBody.className == "hideMe" )
+	{
+		elementBody.className = "";
+		elementImg.innerHTML  = '<a href="javascript:void();" title="Collapse" onClick="toggleThis(\'' + eb + '\',\'' + ei + '\');"><img src="application/bbSolution_1.0.0/Upload/public/imagesets/master/icons/collapse.png" alt="*" class="imgNoBorder"></a>';
+	}
+	else
+	{
+		elementBody.className = "hideMe";
+		elementImg.innerHTML  = '<a href="javascript:void();" title="Expand" onClick="toggleThis(\'' + eb + '\',\'' + ei + '\');"><img src="application/bbSolution_1.0.0/Upload/public/imagesets/master/icons/expand.png" alt="*" class="imgNoBorder"></a>';
+	}
+}
+</script>
+
+</head>
+
+<body>
+<div class="topWrapper">
+	<div class="topLogoBar">
+	  <table class="topLogoBarTable" cellspacing="0" cellpadding="0">
+	    <tr>
+	      <td class="topLogoBarLeft"><a href="?cls=index" title="bbSolution Development"><img src="application/bbSolution_1.0.0/Upload/public/imagesets/master/images/bb-logo.png" width="253" height="49" alt="bbSolution Development" class="imgNoBorder"></a></td>
+	      <td class="topLogoBarRight"><ul>
+	        <li>Good Evening <a href="?cls=members&to_do=1" title="View your profile" style="color:#F00;"><strong>Sam Wilcox</strong></a>!</li>
+	        <li>|</li>
+	        <li><img src="application/bbSolution_1.0.0/Upload/public/imagesets/master/icons/logout.png" width="16" height="16" alt="*" class="imgAlign"> <a href="?cls=authenticate&to_do=logout" title="Log Out" onClick="if(window.confirm('Are you sure you wish to logout?')) { location = '?cls=authenticate&to_do=logout'; } return false;">Log Out</a></li>
+	        <li><img src="application/bbSolution_1.0.0/Upload/public/imagesets/master/icons/usercp.png" width="16" height="16" alt="*" class="imgAlign"> <a href="?cls=usercp" title="My Control Panel">My Control Panel</a></li>
+	        <li><img src="application/bbSolution_1.0.0/Upload/public/imagesets/master/icons/messenger.png" width="16" height="16" alt="*" class="imgAlign"> <a href="?cls=messenger" title="Messenger">Messenger</a> (<strong>1</strong>)</li>
+            <br>
+            <ul>
+            <li>Your last visit was on <span class="timestampTxt">Date and Time</span></li>
+            <li class="sendActivationLink">[ <a href="?cls=createaccount&to_do=resend" title="Resend Activation Email">Resend Activation Email</a> ]</li>
+            </ul>
+	      </ul></td>
+        </tr>
+      </table>
+	</div>
+</div>
+<div class="menuBarWrapper">
+	<div class="menuBar"><a href="?cls=index" title="Forums">Forums</a> <a href="?cls=members&to_do=list" title="Members">Members</a> <a href="?cls=search" title="Search">Search</a> <a href="?cls=online" title="Who's Online?">Who's Online?</a> <a href="?cls=help" title="Help">Help</a></div>
+</div>
+<div class="navBarWrapper">
+	<div class="navBar"><img src="application/bbSolution_1.0.0/Upload/public/imagesets/master/icons/nav_folder.png" width="16" height="16" alt="*" class="imgAlign"> <strong>You are here:</strong> <a href="?cls=index" title="Forums">Forums</a></div>
+</div>
+<div class="wrapper">
+	<div class="insideWrapper">
+	  <div class="contentHeader">Member Login</div>
+      <div class="contentContainer">
+      	<div class="loginPageLeftIsland">
+        <div class="formErrorBox">The username you have entered could not be found in our database.</div>
+        Facebook Connect Here<br>
+      	  <br>
+<form name="lform" id="lform" method="post" action="">
+   	      <div class="loginPageFormLeft">Username or Email:</div>
+            <div class="loginPageFormRight">
+              <input name="username" type="text" id="username" size="32">
+            </div>
+          <div class="clear"></div>
+          <div class="loginPageFormLeft">Password:</div>
+            <div class="loginPageFormRight">
+              <input name="password" type="password" id="password" size="32">
+              <br>
+              <br>
+              <input type="checkbox" name="checkbox" id="checkbox"> 
+              Log me in automatically on my next visit
+              <br>
+              <input type="checkbox" name="checkbox2" id="checkbox2"> 
+              Log me in as anonymous<br>
+              <br>
+              <input type="hidden" name="cls" value="authenticate">
+              <input type="hidden" name="to_do" value="plogin">
+              <input type="submit" name="button" id="button" value="Login">
+            </div>
+            <div class="clear"></div>
+      	  </form>
+      	</div>
+        <div class="loginPageRightIsland"><img src="application/bbSolution_1.0.0/Upload/public/imagesets/master/icons/create-account-info.png" width="32" height="32" alt="*" class="imgAlignCenter"> <span class="loginInfoTitle">Not A Member? <a href="?cls=createaccount" title="Create Account">Create Account</a></span><br>
+          Being a member gives you several advantages over guest status. After you create an account, you will be able to post new topics, post replies, download files and images, and access many member only areas of this community. It's quick and simple to create an account, and only takes about a minute of your time.<br>
+          <br>
+        <img src="application/bbSolution_1.0.0/Upload/public/imagesets/master/icons/account-recovery-info.png" width="32" height="32" alt="*" class="imgAlignCenter"> <span class="loginInfoTitle"><a href="?cls=authenticate&to_do=recovery" title="Account Recovery">Account Recovery</a></span><br>
+        Having difficulty logging into your member account? Use our quick, easy, and secure account recovery process to restore access to your account, whether you lost your password or username.</div>
+        <div class="clear"></div>
+      </div>
+      <div class="bottomBar">
+      	<div class="bottomBarLeft">
+      	  <form name="form1" method="post" action="">
+      	    <select name="theme" id="theme">
+              <optgroup label="Quick Theme Selector">
+      	      <option value="1">bbSolution Default</option>
+              </optgroup>
+   	        </select>
+   	        <select name="select2" id="select2">
+              <optgroup label="Quick Language Selector">
+   	          <option value="1">English (US-American)</option>
+              </optgroup>
+            </select>
+      	  </form>
+      	</div>
+        <div class="bottomBarRight">
+          <ul>
+            <li class="allTimesBottomBar">All times are Boise</li>
+            <li><a href="?cls=groups&to_do=leaders" title="View Leaders">View leaders</a></li>
+            <li><a href="?cls=index&to_do=markall" title="Mark the entire bulletin board as read">Mark all read</a></li>
+            <li><a href="#top" title="Go to top">Go to top</a></li>
+          </ul>
+        </div>
+        <div class="clear"></div>
+      </div>
+      <div class="copyrightBar">
+      	<div class="copyrightBarLeft">[Page processed in 0.12 seconds] [5 SQL queries] [GZIP enabled]</div>
+        <div class="copyrightBarRight">Powered by <a href="http://www.bb-solution.org" title="Click here to visit bbSolution">bbSolution</a> Version 1.0.0<br>
+          &copy;Copyright 2014 bbSolution &reg;All Rights Reserved<br>
+          Licensed to: bbSolution
+        </div>
+        <div class="clear"></div>
+      </div>
+    </div>
+</div>
+</body>
+</html>
